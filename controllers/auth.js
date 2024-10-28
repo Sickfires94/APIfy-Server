@@ -1,7 +1,7 @@
 import "dotenv/config";
 
 import { createTransport } from "nodemailer";
-import  "../models/User.js";
+import  User from "../models/User.js";
 import { hash, compare } from "bcrypt";
 import jwt from "jsonwebtoken";
 
@@ -18,7 +18,7 @@ export const signUp = async (req, res) => {
       return res
         .status(200)
         .json({ success: false, message: "Invalid Email format", data: [] }); // Check the email format
-    let user = await findOne({ email });
+    let user = await User.findOne({ email });
 
     if (user) {
       return res
@@ -32,12 +32,14 @@ export const signUp = async (req, res) => {
       });
     }
 
-    await create({
+    await User.create({
       ...req.body,
       password: await hash(password, 5),
+      role: 'user',
     });
     return res.status(200).json({ success: true, message: "User created" });
   } catch (error) {
+    console.log(error)
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };
@@ -45,7 +47,12 @@ export const signUp = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await findOne({ email, isDeleted: false });
+    if (!email || !password){
+      return res
+        .status(200)
+        .json({ success: false, message: "email and/or password is missing"});
+    }
+    const user = await User.findOne({ email, isDeleted: false });
     if (!user)
       return res
         .status(200)
