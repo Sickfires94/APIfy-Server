@@ -2,16 +2,20 @@ import "dotenv/config";
 import express, { json } from "express";
 import cors from "cors";
 import { connect } from "mongoose";
-const app = express();
-const port = process.env.port || 3001;
-
 import authRouter from "./routes/auth.js";
 import accountManagementRouter from "./routes/accountManagement.js";
 import profileRouter from "./routes/profile.js";
 import projectRouter from './routes/project.js';
-
+import modelRegistry from "./routes/modelRegistry.js";
+import dbRouter from './routes/db.js'
 import { verifyToken } from "./middlewares/verifyToken.js";
 import { checkAdmin } from "./middlewares/checkAdmin.js";
+
+
+
+const app = express();
+const port = process.env.port || 3001;
+
 
 app.use(cors());
 app.use(json());
@@ -19,6 +23,8 @@ app.use("/auth", authRouter);
 app.use(verifyToken);
 app.use("/profile", profileRouter);
 app.use('/project', projectRouter);
+app.use('/model', modelRegistry)
+app.use('/db', dbRouter);
 app.use(checkAdmin);
 app.use("/accountManagement", accountManagementRouter);
 
