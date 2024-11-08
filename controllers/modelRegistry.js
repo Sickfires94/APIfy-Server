@@ -1,4 +1,6 @@
 import Model from "../models/Model.js";
+import User from "../models/User.js";
+import parseModel from "../Functions/parseModel.js";
 
 const createModel = async (req, res) => {
     console.log('creating a model');
@@ -31,28 +33,34 @@ const addColum = async (req, res) => {
     if (!model) {
         return res.status(404).json({ message: "Model not found" });
     }
-    const columExists = model.colums.some(colum => colum.columName === newColum.columName);
-
-    if (columExists) {
-        return res.status(409).json({ message: "Conflict: Column already exists" });
-    }
-
     const newColum = {
         columName,
         type,
         isRequired,
         isArray,
     }
-    console.log(newColum)
+    const columExists = model.colums.some(colum => colum.columName === newColum.columName);
+
+    if (columExists) {
+        return res.status(409).json({ message: "Conflict: Column already exists" });
+    }
+
     const updatedModel = await Model.findByIdAndUpdate(
         modelId,
         { $push: { colums: newColum } },
     );
-
     return res.end();
 }
 
+const getUserModels = async (req,res)=>{
+    const models = await Model.find({
+        user: req.user.id
+    }).exec();
+
+    return res.json(models).end();
+}
 export {
     createModel,
-    addColum
+    addColum,
+    getUserModels,
 };
