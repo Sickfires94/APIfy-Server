@@ -59,8 +59,24 @@ const getUserModels = async (req,res)=>{
 
     return res.json(models).end();
 }
+
+const getModel = async (req,res)=>{
+    const {projectId, modelName} = req.query
+
+    const model = await Model.findOne({
+        user: req.user.id,
+        project: projectId,
+        name: modelName
+    }).exec();
+
+    
+    res.json(model).end();
+}
+
+
 export {
     createModel,
     addColum,
     getUserModels,
+    getModel,
 };
