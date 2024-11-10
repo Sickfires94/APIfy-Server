@@ -1,68 +1,68 @@
 import mongoose from "mongoose";
 import ColumTypes from "../Data/ColumTypes.js";
 
-const sampleModel = {
+// const sampleModel = {
 
-    "name": "Users",
-    "user": {
-        "$oid": "6714e58bd2fc1fb31ad4f019"
-    },
-    "colums": [
-        {
-            "_id": {
-                "$oid": "6722126801294c58203d4f33"
-            },
-            "columName": 'namefirst',
-            "type": "string",
-            "isRequired": false,
-            "isArray": false,
-            "objectColums": []
-        },
-        {
-            "_id": {
-                "$oid": "672894436cee8fc091ae640a"
-            },
-            "columName": "name",
-            "type": "string",
-            "isRequired": false,
-            "isArray": false,
-            "objectColums": []
-        },
-        {
-            "_id": {
-                "$oid": "6728946e6cee8fc091ae6413"
-            },
-            "columName": "newCol",
-            "type": "string",
-            "isRequired": false,
-            "isArray": false,
-            "objectColums": []
-        },
-        {
-            "type": "object",
-            "columName": "objectColum",
-            "isArray": false,
-            "isRequired": false,
-            "objectColums": [
-                {
-                    "type": "object",
-                    "isRequired": true,
-                    "columName": "firstCol",
-                    "isArray": false,
-                    "objectColums": [
-                        {
-                            "type": "object",
-                            "isRequired": true,
-                            "isArray": false,
-                            "columName": 'insidefirstcol'
-                        },
-                    ]
+//     "name": "Users",
+//     "user": {
+//         "$oid": "6714e58bd2fc1fb31ad4f019"
+//     },
+//     "colums": [
+//         {
+//             "_id": {
+//                 "$oid": "6722126801294c58203d4f33"
+//             },
+//             "columName": 'namefirst',
+//             "type": "string",
+//             "isRequired": false,
+//             "isArray": false,
+//             "objectColums": []
+//         },
+//         {
+//             "_id": {
+//                 "$oid": "672894436cee8fc091ae640a"
+//             },
+//             "columName": "name",
+//             "type": "string",
+//             "isRequired": false,
+//             "isArray": false,
+//             "objectColums": []
+//         },
+//         {
+//             "_id": {
+//                 "$oid": "6728946e6cee8fc091ae6413"
+//             },
+//             "columName": "newCol",
+//             "type": "string",
+//             "isRequired": false,
+//             "isArray": false,
+//             "objectColums": []
+//         },
+//         {
+//             "type": "object",
+//             "columName": "objectColum",
+//             "isArray": false,
+//             "isRequired": false,
+//             "objectColums": [
+//                 {
+//                     "type": "object",
+//                     "isRequired": true,
+//                     "columName": "firstCol",
+//                     "isArray": false,
+//                     "objectColums": [
+//                         {
+//                             "type": "object",
+//                             "isRequired": true,
+//                             "isArray": false,
+//                             "columName": 'insidefirstcol'
+//                         },
+//                     ]
 
-                },
-            ]
-        }
-    ]
-}
+//                 },
+//             ]
+//         }
+//     ]
+// }
 
 const parseSchema = (colums) => {
     const schemaDefinition = {};
@@ -115,3 +115,5 @@ const parseSchema = (colums) => {
 
     return schemaDefinition;
 };
+
+export default parseSchema
