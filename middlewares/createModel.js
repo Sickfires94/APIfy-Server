@@ -7,6 +7,8 @@ const createMongooseModel = async (req, res, next) => {
     const { projectId, modelName } = req.query;
     const userId = req.user.id;
     const fullModelName = `${modelName}-${projectId}-${userId}`;
+    req.modelName = fullModelName
+
     
     if (!mongoose.modelNames().includes(fullModelName)) {
         const model = await Model.findOne({

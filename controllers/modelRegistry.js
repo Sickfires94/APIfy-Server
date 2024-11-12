@@ -1,6 +1,7 @@
 import Model from "../models/Model.js";
 import User from "../models/User.js";
 import parseModel from "../Functions/parseModel.js";
+import mongoose from "mongoose";
 
 const createModel = async (req, res) => {
     console.log('creating a model');
@@ -60,17 +61,22 @@ const getUserModels = async (req,res)=>{
     return res.json(models).end();
 }
 
-const getModel = async (req,res)=>{
-    const {projectId, modelName} = req.query
 
-    const model = await Model.findOne({
-        user: req.user.id,
-        project: projectId,
-        name: modelName
-    }).exec();
+const addRow = async (req,res)=>{
+    console.log('adding row');
+    console.log(req.body);
 
-    
-    res.json(model).end();
+    console.log('retrieving already done model');
+    console.log('model name: ', req.modelName);
+    const userModel = mongoose.model(req.modelName);
+
+
+    const row = new userModel(req.body)
+    console.log(row);
+    row.save();
+
+
+    res.end();
 }
 
 
@@ -78,5 +84,5 @@ export {
     createModel,
     addColum,
     getUserModels,
-    getModel,
+    addRow,
 };
