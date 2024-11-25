@@ -8,6 +8,7 @@ import profileRouter from "./routes/profile.js";
 import projectRouter from './routes/project.js';
 import modelRegistry from "./routes/modelRegistry.js";
 import dbRouter from './routes/db.js'
+import apiCreation from "./routes/apiCreation.js";
 import { verifyToken } from "./middlewares/verifyToken.js";
 import { checkAdmin } from "./middlewares/checkAdmin.js";
 
@@ -25,6 +26,7 @@ app.use("/profile", profileRouter);
 app.use('/project', projectRouter);
 app.use('/model', modelRegistry)
 app.use('/db', dbRouter);
+app.use('/api', apiCreation);
 app.use(checkAdmin);
 app.use("/accountManagement", accountManagementRouter);
 
