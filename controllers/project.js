@@ -25,7 +25,7 @@ export const createProject = async (req, res) => {
 };
 
 export const getAllProjects = async (req,res)=>{
-  const {userId} = req.params;
+  const userId = req.user.id;
   if(!userId){
     return res.status(400).end();
   }

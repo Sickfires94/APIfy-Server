@@ -3,12 +3,17 @@ import User from "../models/User.js";
 import parseModel from "../Functions/parseModel.js";
 import mongoose from "mongoose";
 
+
 const createModel = async (req, res) => {
     console.log('creating a model');
 
     const { name, project } = req.body;
 
-    let model = await Model.findOne({ user: req.user.id, project: project, name }).exec();
+    if(!name || !project){
+        return res.status(403).end();
+    }
+
+    let model = await Model.findOne({ user: req.user.id, project: new mongoose.Types.ObjectId(project), name }).exec();
     console.log(model);
     console.log(req.user)
 
@@ -54,7 +59,10 @@ const addColum = async (req, res) => {
 }
 
 const getUserModels = async (req,res)=>{
+    console
+    const {projectId} = req.query
     const models = await Model.find({
+        project: new mongoose.Types.ObjectId(projectId),
         user: req.user.id
     }).exec();
 
