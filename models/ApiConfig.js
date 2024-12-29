@@ -30,6 +30,7 @@ const ApiSchema = new Schema({
     },
     requestParams: [String],
     responseParams: [String],
+    deployed: {type: Boolean, default: false},
     type: { type: String, enum: Object.values(ApiTypes), required: true },
 });
 

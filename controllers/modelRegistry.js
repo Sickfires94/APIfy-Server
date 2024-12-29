@@ -2,6 +2,7 @@ import Model from "../models/Model.js";
 import User from "../models/User.js";
 import parseModel from "../Functions/parseModel.js";
 import mongoose from "mongoose";
+import Models from "../models/Model.js";
 
 
 const createModel = async (req, res) => {
@@ -59,7 +60,7 @@ const addColum = async (req, res) => {
 }
 
 const getUserModels = async (req,res)=>{
-    console
+
     const {projectId} = req.query
     const models = await Model.find({
         project: new mongoose.Types.ObjectId(projectId),
@@ -67,6 +68,22 @@ const getUserModels = async (req,res)=>{
     }).exec();
 
     return res.json(models).end();
+}
+
+const getModel = async (req, res) => {
+
+    const  {modelId} = req.body
+
+    let model = await Model.findOne({
+        _id: modelId
+    }).exec()
+    if(!model) {
+        console.log("No model found");
+        return res.status(404).end()
+    }
+
+
+    return res.json(model).status(200).end()
 }
 
 
@@ -93,4 +110,5 @@ export {
     addColum,
     getUserModels,
     addRow,
+    getModel
 };

@@ -10,7 +10,6 @@ import ApiConfig from "../models/ApiConfig.js";
 const createAPI = async (req, res) => {
     const { name, project, model, type, requestParams, responseParams } = req.body;
     console.log(req.body);
-    console.log("HELLOO")
 
     let api = await ApiConfigs.findOne({ user: req.user.id, project: project, name }).exec();
 
@@ -32,7 +31,17 @@ const createAPI = async (req, res) => {
     res.json(api).end();
 };
 
-const runAPI = async (req, res) => {
+const getAPIs = async (req, res) => {
+    const {project} = req.body;
+
+    console.log(project)
+
+    let apis = await ApiConfigs.find({user: req.user.id, project: project}).exec();
+
+    return res.json(apis).status(200).end()
+}
+
+const testAPI = async (req, res) => {
     const {name, project, requestParams} = req.body;
 
     let api = await ApiConfigs.findOne({ user: req.user.id, project: project, name }).exec();
@@ -47,7 +56,25 @@ const runAPI = async (req, res) => {
     return res.json(data).status(200).end()
 }
 
+const deployAPI = async (req, res) => {
+    const {name, project} = req.params;
+    const {requestParams} = req.body;
+
+    let api = await ApiConfigs.findOne({ user: req.user.id, project: project, name }).exec();
+
+    if (!api) {
+        return res.status(404).end();
+    }
+
+    const userModel = await mongoose.model(req.modelName)
+
+    const data = await userModel.find(requestParams, api.responseParams)
+    return res.json(data).status(200).end()
+}
+
 export {
+    getAPIs,
     createAPI,
-    runAPI
+    testAPI,
+    deployAPI
 };
