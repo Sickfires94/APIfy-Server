@@ -62,6 +62,8 @@ const addColum = async (req, res) => {
 const getUserModels = async (req,res)=>{
 
     const {projectId} = req.query
+
+
     const models = await Model.find({
         project: new mongoose.Types.ObjectId(projectId),
         user: req.user.id

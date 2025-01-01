@@ -1,6 +1,7 @@
 import express from 'express';
-import createMongooseModel from '../middlewares/createModel.js';
 const router = express.Router();
+
+import createMongooseModel from '../middlewares/createModel.js';
 
 import {createModel, addColum, getUserModels, addRow, getModel} from '../controllers/modelRegistry.js';
 

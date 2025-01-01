@@ -8,9 +8,11 @@ import profileRouter from "./routes/profile.js";
 import projectRouter from './routes/project.js';
 import modelRegistry from "./routes/modelRegistry.js";
 import dbRouter from './routes/db.js'
-import apiCreation from "./routes/apiCreation.js";
+import apiCreationRouter from "./routes/apiCreation.js";
+import deployedRouter from "./routes/deployed.js";
 import { verifyToken } from "./middlewares/verifyToken.js";
 import { checkAdmin } from "./middlewares/checkAdmin.js";
+import {deployAPI} from "./controllers/apiCreation.js";
 
 
 
@@ -21,12 +23,13 @@ const port = process.env.port || 3001;
 app.use(cors());
 app.use(json());
 app.use("/auth", authRouter);
+app.use("/deployed", deployedRouter);
 app.use(verifyToken);
 app.use("/profile", profileRouter);
 app.use('/project', projectRouter);
 app.use('/model', modelRegistry)
 app.use('/db', dbRouter);
-app.use('/api', apiCreation);
+app.use('/api', apiCreationRouter);
 app.use(checkAdmin);
 app.use("/accountManagement", accountManagementRouter);
 

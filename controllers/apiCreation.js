@@ -60,8 +60,11 @@ const deployAPI = async (req, res) => {
     const {name, project} = req.params;
     const {requestParams} = req.body;
 
-    let api = await ApiConfigs.findOne({ user: req.user.id, project: project, name }).exec();
+    console.log("params: ", req.params);
 
+    let api = await ApiConfigs.findOne({project: project, name: name }).exec();
+
+    console.log("API: ", api);
     if (!api) {
         return res.status(404).end();
     }
@@ -69,6 +72,7 @@ const deployAPI = async (req, res) => {
     const userModel = await mongoose.model(req.modelName)
 
     const data = await userModel.find(requestParams, api.responseParams)
+    console.log("response: ", data)
     return res.json(data).status(200).end()
 }
 

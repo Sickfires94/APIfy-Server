@@ -6,7 +6,7 @@ import mongoose from "mongoose";
 const createMongooseModel = async (req, res, next) => {
     const { projectId, modelName } = req.query;
     const userId = req.user.id;
-    const fullModelName = `${modelName}-${projectId}-${userId}`;
+    const fullModelName = `${modelName}-${projectId}`;
     req.modelName = fullModelName
 
     
