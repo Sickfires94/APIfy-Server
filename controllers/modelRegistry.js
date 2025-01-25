@@ -98,12 +98,22 @@ const addRow = async (req,res)=>{
     const userModel = mongoose.model(req.modelName);
 
 
-    const row = new userModel(req.body)
+    const row = new userModel(req.body.row)
     console.log(row);
     row.save();
 
-
     res.end();
+}
+
+const getData = async (req,res)=>{
+    console.log('getting data');
+    console.log(req.modelName)
+    const userModel = mongoose.model(req.modelName);
+
+    const data = await userModel.find().exec();
+
+
+    res.json(data)
 }
 
 
@@ -112,5 +122,6 @@ export {
     addColum,
     getUserModels,
     addRow,
-    getModel
+    getModel,
+    getData
 };
