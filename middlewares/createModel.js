@@ -7,7 +7,7 @@ const createMongooseModel = async (req, res, next) => {
     console.log('creating/fetching model')
     const { projectId, modelName } = req.query;
     const userId = req.user.id;
-    const fullModelName = `${modelName}-${projectId}-${modelName}`;
+    const fullModelName = `${modelName}-${projectId}`;
     req.modelName = fullModelName
 
     try {
@@ -16,7 +16,7 @@ const createMongooseModel = async (req, res, next) => {
             project: projectId,
             name: modelName
         }).exec();
-
+        // console.log("model: ", model);
         if (!model) {
             return res.status(404).send("Model definition not found");
         }
@@ -34,6 +34,8 @@ const createMongooseModel = async (req, res, next) => {
         }
     }
     req.modelName = fullModelName
+
+    console.log("Adding row to ", fullModelName);
 
     next();
 };
