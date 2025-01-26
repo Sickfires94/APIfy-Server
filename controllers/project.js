@@ -4,14 +4,16 @@ import Project from '../models/Project.js';
 export const createProject = async (req, res) => {
   console.log('creating project');
 
+  console.log("name: " + req.query.name);
   if(!req.query || !req.query.name){
     return res.status(400).end();
   }
-  const project = Project.findOne({
+  let project = await Project.findOne({
     user: req.user.id,
     name: req.query.name
   })
   if (project){
+    console.log(project);
     return res.status(409).end();
   }
   project = new Project({

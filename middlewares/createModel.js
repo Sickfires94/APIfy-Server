@@ -23,10 +23,13 @@ const createMongooseModel = async (req, res, next) => {
 
         const schemaDefinition = parseSchema(model.colums);
         const mongooseSchema = new mongoose.Schema(schemaDefinition);
-        mongoose.model(fullModelName, mongooseSchema);
+        mongoose.model(fullModelName, mongooseSchema, fullModelName, {
+            overwriteModels: true
+        });
 
     }
     catch (err) {
+        console.log("error!!!")
         if (err.name === "OverwriteModelError") {
         } else {
             console.error(err);
@@ -35,7 +38,7 @@ const createMongooseModel = async (req, res, next) => {
     }
     req.modelName = fullModelName
 
-    console.log("Adding row to ", fullModelName);
+    // console.log("Adding row to ", fullModelName);
 
     next();
 };

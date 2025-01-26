@@ -95,12 +95,12 @@ const addRow = async (req,res)=>{
 
     console.log('retrieving already done model');
     console.log('model name: ', req.modelName);
-    const userModel = mongoose.model(req.modelName);
+    const userModel = await mongoose.model(req.modelName);
 
 
-    const row = new userModel(req.body.row)
+    const row = await new userModel(req.body.row)
+    await row.save();
     console.log(row);
-    row.save();
 
     res.end();
 }
