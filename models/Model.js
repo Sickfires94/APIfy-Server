@@ -39,7 +39,10 @@ export const getColumnsFromModel = (modelDef) => {
 export const checkIfArrayContainsValidColums = (params, columns) => {
 
     for(let i = 0; i < params.length; i++) {
-        if(!columns.includes(params[i])) return false;
+        if(!columns.includes(params[i])) {
+            console.log( params[i] + "Parameter not found")
+            return false;
+        }
     }
     return true;
 }
