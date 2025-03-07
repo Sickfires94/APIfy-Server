@@ -1,4 +1,4 @@
-import { Schema, model } from 'mongoose';
+import {Schema, model, Model} from 'mongoose';
 import ColumTypes from '../Data/ColumTypes.js';
 
 const schema = Schema;
@@ -25,6 +25,27 @@ const ModelSchema = new Schema({
     },
     colums: [ColumSchema]
 });
+
+
+export const getColumnsFromModel = (modelDef) => {
+    console.log("Model: " + modelDef);
+    let columns = []
+    for (let col of modelDef.colums) {
+        columns.push(col.columName)
+    }
+    return columns
+}
+
+export const checkIfArrayContainsValidColums = (params, columns) => {
+
+    for(let i = 0; i < params.length; i++) {
+        if(!columns.includes(params[i])) {
+            console.log( params[i] + "Parameter not found")
+            return false;
+        }
+    }
+    return true;
+}
 
 const Models = model('Models', ModelSchema);
 

@@ -28,9 +28,11 @@ const ApiSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "Models",
     },
-    requestParams: [String],
+    searchParams: [String],
+    setParams: [String],
     responseParams: [String],
     deployed: {type: Boolean, default: false},
+    middleware: {type: Schema.Types.ObjectId, ref: "Middlewares", },
     type: { type: String, enum: Object.values(ApiTypes), required: true },
 });
 
