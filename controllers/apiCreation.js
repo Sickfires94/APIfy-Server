@@ -14,7 +14,7 @@ import {DeleteFlow} from "../Functions/APIs/Delete.js";
 import {UpdateFlow} from "../Functions/APIs/Update.js";
 import ApiTypes from "../Data/ApiTypes.js";
 import {request, response} from "express";
-import * as sea from "node:sea";
+
 
 const createAPI = async (req, res) => {
     const { name, project, model, type, searchParams, setParams, responseParams } = req.body;

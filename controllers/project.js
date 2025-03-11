@@ -1,23 +1,24 @@
 import User from "../models/User.js";
 import Project from '../models/Project.js';
+import { get } from "mongoose";
 
 export const createProject = async (req, res) => {
   console.log('creating project');
 
-  console.log("name: " + req.query.name);
-  if(!req.query || !req.query.name){
+  console.log("name: " + req.body.name);
+  if(!req.body || !req.body.name){
     return res.status(400).end();
   }
   let project = await Project.findOne({
     user: req.user.id,
-    name: req.query.name
+    name: req.body.name
   })
   if (project){
     console.log(project);
     return res.status(409).end();
   }
   project = new Project({
-    name: req.query.name,
+    name: req.body.name,
     user: req.user.id
   })
   console.log(project);
@@ -49,8 +50,19 @@ export const getProject = async (req, res) => {
   return res.json(project).status(200).end();
 }
 
+export const getProjectById = async (req, res) => {
+  const { id } = req.body;
+  const project = await Project.findOne({ _id: id });
+  if (!project) {
+    console.log("project not found");
+    return res.status(404).end();
+  }
+  return res.json(project.name).status(200).end();
+}
+
 export default {
   createProject,
   getAllProjects,
-  getProject
+  getProject,
+  getProjectById
 };
