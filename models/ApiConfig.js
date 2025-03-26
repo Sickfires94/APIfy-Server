@@ -16,7 +16,7 @@ const schema = Schema;
 
 const Options = new Schema({
     column: String,
-    operator: {type: String, enum:Object.values(ApiOperators), default: "="},
+    operator: {type: String, enum:Object.values(ApiOperators), default: "$eq"},
 })
 
 

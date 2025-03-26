@@ -1,5 +1,5 @@
 const ApiOperators = Object.freeze({
-    EQUAL: "=",
+    EQUAL: "$eq",
     GREATER: '$gt',
     GREATER_EQUAL: '$gte',
     LESSER: '$lt',

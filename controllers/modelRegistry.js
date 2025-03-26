@@ -3,7 +3,7 @@ import User from "../models/User.js";
 import parseModel from "../Functions/parseModel.js";
 import mongoose from "mongoose";
 import Models from "../models/Model.js";
-import {checkParamsExist} from "../Functions/CheckBodyParams.js";
+import {checkParamsExist} from "../Functions/Helper Functions/CheckBodyParams.js";
 
 
 const createModel = async (req, res) => {

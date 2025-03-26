@@ -14,7 +14,8 @@ import {DeleteFlow} from "../Functions/APIs/Delete.js";
 import {UpdateFlow} from "../Functions/APIs/Update.js";
 import ApiTypes from "../Data/ApiTypes.js";
 import {request, response} from "express";
-import {checkParamsExist} from "../Functions/CheckBodyParams.js";
+import {checkParamsExist} from "../Functions/Helper Functions/CheckBodyParams.js";
+import {transformOperators} from "../Functions/Helper Functions/TransformOperators.js";
 
 
 const createAPI = async (req, res) => {
@@ -36,7 +37,7 @@ const createAPI = async (req, res) => {
 
     let columns = getColumnsFromModel(modelDef);
 
-    if (!checkIfArrayContainsValidColums(searchParams, columns) ||
+    if (!checkIfArrayContainsValidColums(searchParams.map(param => param.column), columns) ||
         !checkIfArrayContainsValidColums(setParams, columns) ||
         !checkIfArrayContainsValidColums(responseParams, columns)) {
         return res.status(404).json({error: "Parameter Not Found"}).end();
@@ -67,13 +68,15 @@ const createAPI = async (req, res) => {
 
     }
 
+    const transformedSearchParams = transformOperators(searchParams)
+
     // CREATE API CONFIG
     api = new ApiConfig({
         name,
         project,
         user: req.user.id,
         model: model,
-        searchParams: searchParams,
+        searchParams: transformedSearchParams,
         setParams: setParams,
         responseParams: responseParams,
         type: type,
@@ -148,7 +151,7 @@ const deployAPI = async (req, res) => {
             UpdateFlow(api, req.modelName, searchParams, setParams, res)
             break;
         case ApiTypes.AUTH:
-            AuthFlow(api, project, req.modelName, searchParams, res)
+            AuthFlow(api, req.modelName, searchParams, res)
             break;
     }
 }
