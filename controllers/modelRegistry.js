@@ -3,12 +3,14 @@ import User from "../models/User.js";
 import parseModel from "../Functions/parseModel.js";
 import mongoose from "mongoose";
 import Models from "../models/Model.js";
+import {checkParamsExist} from "../Functions/CheckBodyParams.js";
 
 
 const createModel = async (req, res) => {
     console.log('creating a model');
 
     const { name, project } = req.body;
+    checkParamsExist(res, [name, project])
 
     if(!name || !project){
         return res.status(403).end();
@@ -34,6 +36,7 @@ const addColum = async (req, res) => {
     console.log('adding colum');
 
     const { columName, type, isRequired, isArray, objectColums, modelId } = req.body;
+    checkParamsExist(res, [columName, type, isRequired, isArray, objectColums, modelId]);
 
     const model = await Model.findById(modelId);
 

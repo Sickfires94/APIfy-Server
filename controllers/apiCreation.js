@@ -14,10 +14,14 @@ import {DeleteFlow} from "../Functions/APIs/Delete.js";
 import {UpdateFlow} from "../Functions/APIs/Update.js";
 import ApiTypes from "../Data/ApiTypes.js";
 import {request, response} from "express";
+import {checkParamsExist} from "../Functions/CheckBodyParams.js";
 
 
 const createAPI = async (req, res) => {
     const { name, project, model, type, searchParams, setParams, responseParams } = req.body;
+    checkParamsExist(res, [name, project, model, type]);
+
+
     console.log(req.body);
 
     let api = await ApiConfigs.findOne({project: project, name: name }).exec();
@@ -54,6 +58,13 @@ const createAPI = async (req, res) => {
             if(searchParams.length < 1)
                 return res.status(403).json({error: "At least 1 parameter should be searched for"});
             break;
+        case (ApiTypes.AUTH):
+            if(searchParams.length < 2 && responseParams.length > 1)
+                return res.status(403).json({error: "Invalid Set of Parameters"});
+            break;
+        default:
+            return res.status(400).json({error: "Invalid Request Type"}).end();
+
     }
 
     // CREATE API CONFIG
@@ -73,8 +84,7 @@ const createAPI = async (req, res) => {
 
 const getAPIs = async (req, res) => {
     const {project} = req.body;
-
-    console.log(project)
+    checkParamsExist(res, [project])
 
     let apis = await ApiConfigs.find({project: project}).exec();
 
@@ -83,6 +93,7 @@ const getAPIs = async (req, res) => {
 
 const testAPI = async (req, res) => {
     const {name, project, requestParams} = req.body;
+    checkParamsExist(res, [name, project])
 
     let api = await ApiConfigs.findOne({project: project, name }).exec();
 
@@ -99,7 +110,8 @@ const testAPI = async (req, res) => {
 const deployAPI = async (req, res) => {
     const {name, project} = req.params;
     const {searchParams, setParams} = req.body;
-
+    
+    checkParamsExist(res, [name, project])
     console.log("params: ", req.params);
 
     let api = await ApiConfigs.findOne({project: project, name: name }).exec();
@@ -108,6 +120,19 @@ const deployAPI = async (req, res) => {
     if (!api) {
         return res.status(404).end();
     }
+
+    for(let i = 0; i < api.searchParams.length; i++) {
+        if(!(searchParams.hasOwnProperty(api.searchParams[i].column))) {
+            return res.status(400).json({error: api.searchParams[i] + " missing"}).end();
+        }
+    }
+
+    for(let i = 0; i < api.setParams.length; i++) {
+        if(!(searchParams.hasOwnProperty(api.setParams[i]))) {
+            return res.status(400).json({error: api.setParams[i] + " missing"}).end();
+        }
+    }
+
 
     switch (api.type) {
         case ApiTypes.GET:
@@ -122,11 +147,15 @@ const deployAPI = async (req, res) => {
         case ApiTypes.UPDATE:
             UpdateFlow(api, req.modelName, searchParams, setParams, res)
             break;
+        case ApiTypes.AUTH:
+            AuthFlow(api, project, req.modelName, searchParams, res)
+            break;
     }
 }
 
 const createMiddleware = async (req, res) => {
     const { name, project, model, role_col, accessible_roles } = req.body;
+    checkParamsExist(res, [name, project, model, role_col, accessible_roles]);
     console.log(req.body);
 
     let middleware = await MiddlewareConfigs.findOne({ user: req.user.id, project: project, name }).exec();

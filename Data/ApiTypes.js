@@ -3,6 +3,7 @@ const ApiTypes = Object.freeze({
     POST: 'post',
     UPDATE: 'update',
     DELETE: 'delete',
+    AUTH: "auth",
   });
   
 export default ApiTypes  

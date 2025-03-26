@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 
 export const GetFlow = async (api, model, searchParams, res) => {
     const userModel = await mongoose.model(model)
+    console.log("**********************************")
+    console.log("Project: " + model)
 
     const data = await userModel.find(searchParams, api.responseParams)
 
