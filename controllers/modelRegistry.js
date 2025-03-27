@@ -36,7 +36,7 @@ const addColum = async (req, res) => {
     console.log('adding colum');
 
     const { columName, type, isRequired, isArray, objectColums, modelId } = req.body;
-    checkParamsExist(res, [columName, type, isRequired, isArray, objectColums, modelId]);
+    checkParamsExist(res, [columName, type, modelId]);
 
     const model = await Model.findById(modelId);
 
