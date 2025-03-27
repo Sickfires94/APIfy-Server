@@ -5,6 +5,7 @@ const ColumTypes = Object.freeze({
     BOOLEAN: 'boolean',
     DATE: 'date',
     OBJECT: 'object',
+    ENUM: 'enum',
   });
   
 export default ColumTypes  

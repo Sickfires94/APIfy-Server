@@ -4,13 +4,14 @@ import parseModel from "../Functions/parseModel.js";
 import mongoose from "mongoose";
 import Models from "../models/Model.js";
 import {checkParamsExist} from "../Functions/Helper Functions/CheckBodyParams.js";
+import ColumTypes from "../Data/ColumTypes.js";
 
 
 const createModel = async (req, res) => {
     console.log('creating a model');
 
     const { name, project } = req.body;
-    checkParamsExist(res, [name, project])
+    if (!checkParamsExist(res, [name, project])) return res;
 
     if(!name || !project){
         return res.status(403).end();
@@ -35,19 +36,31 @@ const createModel = async (req, res) => {
 const addColum = async (req, res) => {
     console.log('adding colum');
 
-    const { columName, type, isRequired, isArray, objectColums, modelId } = req.body;
-    checkParamsExist(res, [columName, type, modelId]);
+    const { columName, type, isRequired, isArray, modelId } = req.body;
+    if (!checkParamsExist(res, [columName, type, modelId]))  return res;
 
     const model = await Model.findById(modelId);
 
     if (!model) {
         return res.status(404).json({ message: "Model not found" });
     }
+    let objectColums = []
+
+    console.log("type: " + type + "\nENUMS: " + ColumTypes.ENUM)
+
+    if(type === ColumTypes.ENUM){
+        console.log("here")
+        const {enumList} = req.body
+        if (!checkParamsExist(res, [enumList])) return res;
+        objectColums = enumList 
+    }
+
     const newColum = {
         columName,
         type,
         isRequired,
         isArray,
+        objectColums
     }
     const columExists = model.colums.some(colum => colum.columName === newColum.columName);
 
@@ -59,7 +72,7 @@ const addColum = async (req, res) => {
         modelId,
         { $push: { colums: newColum } },
     );
-    return res.end();
+    return res.status(200).json({data: "Column Created Successfully"}).end();
 }
 
 const getUserModels = async (req,res)=>{

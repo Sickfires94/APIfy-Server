@@ -34,6 +34,9 @@ const parseSchema = (colums) => {
                 case ColumTypes.OBJECT:
                     fieldType = Object
                     break;
+                case ColumTypes.ENUM:
+                    fieldType = String
+                    break;
                 default:
                     console.log('throwing error because: ', colum.type)
                     throw new Error(`Unsupported column type: ${colum.type}`);
@@ -44,10 +47,15 @@ const parseSchema = (colums) => {
             fieldType = [fieldType];
         }
 
-        schemaDefinition[colum.columName] = {
+        fieldOptions = {
             type: fieldType,
             required: colum.isRequired,
         };
+
+        if(colum.type == ColumTypes.ENUM)
+            fieldOptions.enum = colum.objectColums 
+
+        schemaDefinition[colum.columName] = fieldOptions
     });
 
     return schemaDefinition;

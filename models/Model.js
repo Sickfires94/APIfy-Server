@@ -10,7 +10,7 @@ ColumSchema.add({
     type: { type: String, enum: Object.values(ColumTypes), required: true },
     isRequired: { type: Boolean, default: false },
     isArray: {type: Boolean, default: false},
-    objectColums: [ColumSchema]
+    objectColums: [String]
 })
 
 const ModelSchema = new Schema({
