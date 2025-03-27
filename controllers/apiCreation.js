@@ -9,7 +9,6 @@ import ApiConfig from "../models/ApiConfig.js";
 
 const createAPI = async (req, res) => {
     const { name, project, model, type, requestParams, responseParams } = req.body;
-    console.log(req.body);
 
     let api = await ApiConfigs.findOne({ user: req.user.id, project: project, name }).exec();
 
@@ -17,12 +16,14 @@ const createAPI = async (req, res) => {
         return res.status(409).end();
     }
 
+    console.log('crearing api')
+    console.log(req.user)
 
     api = new ApiConfig({
         name,
-        project,
+        project,    
         user: req.user.id,
-        model: model,
+        model: new mongoose.Types.ObjectId(model),
         requestParams: requestParams,
         responseParams: responseParams,
         type: type,
@@ -31,10 +32,16 @@ const createAPI = async (req, res) => {
     res.json(api).end();
 };
 
+const getApi = async (req,res)=>{
+    const {apiId} = req.params;
+    
+    const data = await ApiConfigs.findOne({user: req.user.id, _id: apiId}).exec();
+    res.json(data);
+}
+
 const getAPIs = async (req, res) => {
     const {project} = req.body;
 
-    console.log(project)
 
     let apis = await ApiConfigs.find({user: req.user.id, project: project}).exec();
 
@@ -60,11 +67,9 @@ const deployAPI = async (req, res) => {
     const {name, project} = req.params;
     const {requestParams} = req.body;
 
-    console.log("params: ", req.params);
 
     let api = await ApiConfigs.findOne({project: project, name: name }).exec();
 
-    console.log("API: ", api);
     if (!api) {
         return res.status(404).end();
     }
@@ -72,12 +77,12 @@ const deployAPI = async (req, res) => {
     const userModel = await mongoose.model(req.modelName)
 
     const data = await userModel.find(requestParams, api.responseParams)
-    console.log("response: ", data)
     return res.json(data).status(200).end()
 }
 
 export {
     getAPIs,
+    getApi,
     createAPI,
     testAPI,
     deployAPI

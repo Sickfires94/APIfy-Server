@@ -36,6 +36,7 @@ export const getAllProjects = async (req,res)=>{
 }
 
 export const getProject = async (req, res) => {
+  console.log('get project')
   const userId = req.user.id;
   const {name} = req.params;
 

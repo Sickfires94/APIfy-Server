@@ -15,8 +15,7 @@ const createModel = async (req, res) => {
     }
 
     let model = await Model.findOne({ user: req.user.id, project: new mongoose.Types.ObjectId(project), name }).exec();
-    console.log(model);
-    console.log(req.user)
+    
 
     if (model) {
         return res.status(409).end();
@@ -60,6 +59,7 @@ const addColum = async (req, res) => {
 }
 
 const getUserModels = async (req,res)=>{
+    console.log('getting user models')
 
     const {projectId} = req.query
 
