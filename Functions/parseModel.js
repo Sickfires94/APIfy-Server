@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import ColumTypes from "../Data/ColumTypes.js";
 
 
+
 const parseSchema = (colums) => {
     const schemaDefinition = {};
 
@@ -11,12 +12,11 @@ const parseSchema = (colums) => {
         if (colum.type === ColumTypes.OBJECT && colum.objectColums && colum.objectColums.length > 0) {
             let obj = parseSchema(colum.objectColums);
             if (colum.isArray) {
-                schemaDefinition[colum.columName] = [obj]
+                schemaDefinition[colum.columName] = [obj];
+            } else {
+                schemaDefinition[colum.columName] = obj;
             }
-            else {
-                schemaDefinition[colum.columName] = obj
-            }
-            return
+            return;
         } else {
             switch (colum.type) {
                 case ColumTypes.STRING:
@@ -32,10 +32,13 @@ const parseSchema = (colums) => {
                     fieldType = Date;
                     break;
                 case ColumTypes.OBJECT:
-                    fieldType = Object
+                    fieldType = Object;
+                    break;
+                case ColumTypes.ENUM:
+                    fieldType = String;
                     break;
                 default:
-                    console.log('throwing error because: ', colum.type)
+                    console.log('throwing error because: ', colum.type);
                     throw new Error(`Unsupported column type: ${colum.type}`);
             }
         }
@@ -44,13 +47,20 @@ const parseSchema = (colums) => {
             fieldType = [fieldType];
         }
 
-        schemaDefinition[colum.columName] = {
+        // FIXED: Added const declaration
+        const fieldOptions = {
             type: fieldType,
             required: colum.isRequired,
         };
+
+        if (colum.type === ColumTypes.ENUM) {
+            fieldOptions.enum = colum.objectColums;
+        }
+
+        schemaDefinition[colum.columName] = fieldOptions;
     });
 
     return schemaDefinition;
 };
 
-export default parseSchema
+export default parseSchema;
