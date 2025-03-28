@@ -48,6 +48,8 @@ const createAPI = async (req, res) => {
 
     let columns = getColumnsFromModel(modelDef);
 
+    console.log("search Params: " + searchParams);
+
     // Add null checks for array operations
     if (
         !checkIfArrayContainsValidColums(
