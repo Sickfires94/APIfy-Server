@@ -2,13 +2,14 @@ import { Schema, model } from 'mongoose';
 
 const schema = Schema;
 
-const NodeSchema = new Schema({
-    x: {type: Number, required: true},
-    y: {type: String, required: true},
-    id: {type: String, required: true},
-    name: {type: String, required: true},
-    type: {type: String, required: true},
-    nodeType: {type: String, required: true},
+const NodeSchema = new Schema()
+    NodeSchema.add({
+    x: {type: Number},
+    y: {type: Number},
+    id: {type: String},
+    name: {type: String},
+    type: {type: String},
+    nodeType: {type: String},
     edges: [{type: String}],
     children: [NodeSchema]
 });

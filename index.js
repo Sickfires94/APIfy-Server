@@ -10,6 +10,7 @@ import modelRegistry from "./routes/modelRegistry.js";
 import dbRouter from './routes/db.js'
 import apiCreationRouter from "./routes/apiCreation.js";
 import deployedRouter from "./routes/deployed.js";
+import apiBuilderRouter from "./routes/apiBuilder.js";
 import { verifyToken } from "./middlewares/verifyToken.js";
 import { checkAdmin } from "./middlewares/checkAdmin.js";
 import {deployAPI} from "./controllers/apiCreation.js";
@@ -30,6 +31,7 @@ app.use('/project', projectRouter);
 app.use('/model', modelRegistry)
 app.use('/db', dbRouter);
 app.use('/api', apiCreationRouter);
+app.use('/apibuilder', apiBuilderRouter)
 app.use(checkAdmin);
 app.use("/accountManagement", accountManagementRouter);
 
