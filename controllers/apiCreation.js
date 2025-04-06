@@ -19,58 +19,76 @@ import {transformOperators} from "../Functions/Helper Functions/TransformOperato
 
 
 const createAPI = async (req, res) => {
-    const { name, project, model, type, searchParams, setParams, responseParams } = req.body;
+    // Add default values and destructure
+    const { name, project, model, type, searchParams = [], setParams = [], responseParams = []} = req.body;
+
+    // Check required parameters
     checkParamsExist(res, [name, project, model, type]);
 
-
-    console.log(req.body);
-
-    let api = await ApiConfigs.findOne({project: project, name: name }).exec();
-    if (api) {
-        return res.status(409).json({error: "API already exists"}).end();
+    // Validate array parameters
+    if (!Array.isArray(searchParams)) {
+        return res.status(400).json({ error: "searchParams must be an array" }).end();
+    }
+    if (!Array.isArray(setParams)) {
+        return res.status(400).json({ error: "setParams must be an array" }).end();
+    }
+    if (!Array.isArray(responseParams)) {
+        return res.status(400).json({ error: "responseParams must be an array" }).end();
     }
 
-    let modelDef = await Model.findOne({_id: model}).exec();
-    if(!modelDef) {
-        return res.status(404).json({error: "Model Not Found"}).end();
+    let api = await ApiConfigs.findOne({ project: project, name: name }).exec();
+    if (api) {
+        return res.status(409).json({ error: "API already exists" }).end();
+    }
+
+    let modelDef = await Model.findOne({ _id: model }).exec();
+    if (!modelDef) {
+        return res.status(404).json({ error: "Model Not Found" }).end();
     }
 
     let columns = getColumnsFromModel(modelDef);
 
-    if (!checkIfArrayContainsValidColums(searchParams.map(param => param.column), columns) ||
+    console.log("search Params: " + searchParams);
+
+    // Add null checks for array operations
+    if (
+        !checkIfArrayContainsValidColums(
+            searchParams.map(param => param?.column), 
+            columns
+        ) ||
         !checkIfArrayContainsValidColums(setParams, columns) ||
-        !checkIfArrayContainsValidColums(responseParams, columns)) {
-        return res.status(404).json({error: "Parameter Not Found"}).end();
+        !checkIfArrayContainsValidColums(responseParams, columns)
+    ) {
+        return res.status(400).json({ error: "Invalid parameters" }).end();
     }
 
-    // APPLY ANY CHECKS TO API CREATION REQUEST HERE
+    // Existing switch case remains the same
     switch (type) {
         case (ApiTypes.GET):
             break;
         case (ApiTypes.POST):
-            if(setParams.length < 1)
-                return res.status(403).json({error: "At least 1 parameter should be set"});
+            if (setParams.length < 1)
+                return res.status(403).json({ error: "At least 1 parameter should be set" });
             break;
         case (ApiTypes.UPDATE):
             if (setParams.length < 1)
-                return res.status(403).json({error: "At least 1 parameter should be set"});
+                return res.status(403).json({ error: "At least 1 parameter should be set" });
             break;
         case (ApiTypes.DELETE):
-            if(searchParams.length < 1)
-                return res.status(403).json({error: "At least 1 parameter should be searched for"});
+            if (searchParams.length < 1)
+                return res.status(403).json({ error: "At least 1 parameter should be searched for" });
             break;
         case (ApiTypes.AUTH):
-            if(searchParams.length < 2 && responseParams.length > 1)
-                return res.status(403).json({error: "Invalid Set of Parameters"});
+            if (searchParams.length < 2 && responseParams.length > 1)
+                return res.status(403).json({ error: "Invalid Set of Parameters" });
             break;
         default:
-            return res.status(400).json({error: "Invalid Request Type"}).end();
-
+            return res.status(400).json({ error: "Invalid Request Type" }).end();
     }
 
-    const transformedSearchParams = transformOperators(searchParams)
+    const transformedSearchParams = transformOperators(searchParams);
 
-    // CREATE API CONFIG
+    // Create API Config
     api = new ApiConfig({
         name,
         project,    
@@ -80,7 +98,8 @@ const createAPI = async (req, res) => {
         setParams: setParams,
         responseParams: responseParams,
         type: type,
-    })
+    });
+    
     await api.save();
     res.json(api).end();
 };
