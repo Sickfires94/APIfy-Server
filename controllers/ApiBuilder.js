@@ -1,6 +1,7 @@
 import {checkParamsExist} from "../Functions/Helper Functions/CheckBodyParams.js";
 import ApiBuilder from "../models/Node.js";
 import apiConfig from "../models/ApiConfig.js";
+import mongoose from "mongoose";
 
 
 const saveBuilderState = async (req, res) => {
@@ -18,16 +19,21 @@ const saveBuilderState = async (req, res) => {
         return res.status(200).json(saved_state).end();
     }
 
-    saved_state.nodes = nodes;
+    saved_state.nodes = [...nodes];
+    console.log('display saved nodes')
+    console.log(saved_state.nodes);
     await saved_state.save();
 
     return res.status(200).json(saved_state).end();
 };
 
 const getBuilderState = async (req, res) => {
+    console.log('getting api builder');
     const {apiConfigId} = req.params;
+    console.log(apiConfigId);
 
-    let saved_state = await ApiBuilder.findOne({apiConfig: apiConfigId})
+    let saved_state = await ApiBuilder.findOne({apiConfig: new mongoose.Types.ObjectId(apiConfigId)})
+    console.log(saved_state)
     return res.status(200).json(saved_state).end();
 }
 

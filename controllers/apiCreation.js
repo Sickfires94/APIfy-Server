@@ -1,26 +1,27 @@
-import Model, {checkIfArrayContainsValidColums, getColumnsFromModel} from "../models/Model.js";
+import Model, { checkIfArrayContainsValidColums, getColumnsFromModel } from "../models/Model.js";
 import User from "../models/User.js";
 import parseModel from "../Functions/parseModel.js";
-import mongoose, {Mongoose} from "mongoose";
+import mongoose, { Mongoose } from "mongoose";
 import ApiConfigs from "../models/ApiConfig.js";
 import Models from "../models/Model.js";
 import apiConfig from "../models/ApiConfig.js";
 import ApiConfig from "../models/ApiConfig.js";
 import MiddlewareConfig from "../models/MiddlewareConfig.js";
 import MiddlewareConfigs from "../models/MiddlewareConfig.js";
-import {GetFlow} from "../Functions/APIs/Get.js";
-import {PostFlow} from "../Functions/APIs/Post.js";
-import {DeleteFlow} from "../Functions/APIs/Delete.js";
-import {UpdateFlow} from "../Functions/APIs/Update.js";
+import { GetFlow } from "../Functions/APIs/Get.js";
+import { PostFlow } from "../Functions/APIs/Post.js";
+import { DeleteFlow } from "../Functions/APIs/Delete.js";
+import { UpdateFlow } from "../Functions/APIs/Update.js";
 import ApiTypes from "../Data/ApiTypes.js";
-import {request, response} from "express";
-import {checkParamsExist} from "../Functions/Helper Functions/CheckBodyParams.js";
-import {transformOperators} from "../Functions/Helper Functions/TransformOperators.js";
+import { request, response } from "express";
+import { checkParamsExist } from "../Functions/Helper Functions/CheckBodyParams.js";
+import { transformOperators } from "../Functions/Helper Functions/TransformOperators.js";
+import ApiBuilder from "../models/Node.js";
 
 
 const createAPI = async (req, res) => {
     // Add default values and destructure
-    const { name, project, model, type, searchParams = [], setParams = [], responseParams = []} = req.body;
+    const { name, project, model, type, searchParams = [], setParams = [], responseParams = [] } = req.body;
 
     // Check required parameters
     checkParamsExist(res, [name, project, model, type]);
@@ -50,10 +51,9 @@ const createAPI = async (req, res) => {
 
     console.log("search Params: " + searchParams);
 
-    // Add null checks for array operations
     if (
         !checkIfArrayContainsValidColums(
-            searchParams.map(param => param?.column), 
+            searchParams.map(param => param?.column),
             columns
         ) ||
         !checkIfArrayContainsValidColums(setParams, columns) ||
@@ -91,7 +91,7 @@ const createAPI = async (req, res) => {
     // Create API Config
     api = new ApiConfig({
         name,
-        project,    
+        project,
         user: req.user.id,
         model: model,
         searchParams: transformedSearchParams,
@@ -99,32 +99,63 @@ const createAPI = async (req, res) => {
         responseParams: responseParams,
         type: type,
     });
-    
+
+    let apiBuilder = new ApiBuilder({
+        nodes:
+            [
+                {
+                    x: 100,
+                    y: 100,
+                    id: "1",
+                    name: 'Request Parameters',
+                    type: 'request',
+                    nodeType: 'requestParams',
+                    edges: [],
+                    children: []
+                },
+                {
+                    x: 700,
+                    y: 100,
+                    id: "2",
+                    name: 'Response',
+                    type: 'response',
+                    nodeType: 'responseNode',
+                    edges: [],
+                    children: []
+                }
+
+            ],
+        apiConfig: api._id
+    })
+
+
+
+    await apiBuilder.save();
     await api.save();
     res.json(api).end();
 };
 
-const getApi = async (req,res)=>{
-    const {apiId} = req.params;
-    
-    const data = await ApiConfigs.findOne({user: req.user.id, _id: apiId}).exec();
+const getApi = async (req, res) => {
+    const { apiId } = req.params;
+
+    const data = await ApiConfigs.findOne({ user: req.user.id, _id: apiId }).exec();
     res.json(data);
 }
 
 const getAPIs = async (req, res) => {
-    const {project} = req.body;
+    const { project } = req.body;
     checkParamsExist(res, [project])
 
-    let apis = await ApiConfigs.find({project: project}).exec();
+    let apis = await ApiConfigs.find({ project: project }).exec();
 
     return res.json(apis).status(200).end()
 }
 
 const testAPI = async (req, res) => {
-    const {name, project, requestParams} = req.body;
+    const { name, project, requestParams } = req.body;
     checkParamsExist(res, [name, project])
 
-    let api = await ApiConfigs.findOne({project: project, name }).exec();
+    let api = await ApiConfigs.findOne({ project: project, name }).exec();
 
     if (!api) {
         return res.status(404).end();
@@ -137,27 +168,27 @@ const testAPI = async (req, res) => {
 }
 
 const deployAPI = async (req, res) => {
-    const {name, project} = req.params;
-    const {searchParams, setParams} = req.body;
-    
+    const { name, project } = req.params;
+    const { searchParams, setParams } = req.body;
+
     checkParamsExist(res, [name, project])
     console.log("params: ", req.params);
 
-    let api = await ApiConfigs.findOne({project: project, name: name }).exec();
+    let api = await ApiConfigs.findOne({ project: project, name: name }).exec();
 
     if (!api) {
         return res.status(404).end();
     }
 
-    for(let i = 0; i < api.searchParams.length; i++) {
-        if(!(searchParams.hasOwnProperty(api.searchParams[i].column))) {
-            return res.status(400).json({error: api.searchParams[i] + " missing"}).end();
+    for (let i = 0; i < api.searchParams.length; i++) {
+        if (!(searchParams.hasOwnProperty(api.searchParams[i].column))) {
+            return res.status(400).json({ error: api.searchParams[i] + " missing" }).end();
         }
     }
 
-    for(let i = 0; i < api.setParams.length; i++) {
-        if(!(searchParams.hasOwnProperty(api.setParams[i]))) {
-            return res.status(400).json({error: api.setParams[i] + " missing"}).end();
+    for (let i = 0; i < api.setParams.length; i++) {
+        if (!(searchParams.hasOwnProperty(api.setParams[i]))) {
+            return res.status(400).json({ error: api.setParams[i] + " missing" }).end();
         }
     }
 
@@ -206,16 +237,16 @@ const createMiddleware = async (req, res) => {
 };
 
 const addMiddleware = async (req, res) => {
-    const {middleware_id, api_id} = req.body;
+    const { middleware_id, api_id } = req.body;
 
-    const middleware = await MiddlewareConfigs.findOne({_id: middleware_id})
-    if(!middleware) {
-        res.json({error: "Middleware Not Found"}).status(404).end()
+    const middleware = await MiddlewareConfigs.findOne({ _id: middleware_id })
+    if (!middleware) {
+        res.json({ error: "Middleware Not Found" }).status(404).end()
     }
 
-    const api = await ApiConfigs.findOne({_id: api_id});
-    if(!api) {
-        res.json({error: "API Not Found"}).status(404).end();
+    const api = await ApiConfigs.findOne({ _id: api_id });
+    if (!api) {
+        res.json({ error: "API Not Found" }).status(404).end();
     }
 
     await api.middlewares.push(middleware);
@@ -227,19 +258,14 @@ const addMiddleware = async (req, res) => {
 
 const applyMiddlewares = async (req, res, next) => {
     const { name, project } = req.query;
-    const api = await ApiConfigs.findOne({project: project, name:name})
+    const api = await ApiConfigs.findOne({ project: project, name: name })
 
-    if(!api.middleware) next();
+    if (!api.middleware) next();
 
-    const middleware = await MiddlewareConfigs.findOne({_id: api.middleware})
-    if(!middleware) {
-        res.json({error: "Middleware not found"}).status(404).end();
+    const middleware = await MiddlewareConfigs.findOne({ _id: api.middleware })
+    if (!middleware) {
+        res.json({ error: "Middleware not found" }).status(404).end();
     }
-
-
-
-
-
 }
 
 export {

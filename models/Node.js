@@ -2,6 +2,14 @@ import { Schema, model } from 'mongoose';
 
 const schema = Schema;
 
+
+const ConfigurationSchema = new Schema({
+    queryType: { type: String },
+    type: { type: String },
+    outputColums: [String],
+    operator: { type: String },
+  }, { _id: false });
+  
 const NodeSchema = new Schema()
     NodeSchema.add({
     x: {type: Number},
@@ -11,6 +19,7 @@ const NodeSchema = new Schema()
     type: {type: String},
     nodeType: {type: String},
     edges: [{type: String}],
+    configuration: ConfigurationSchema, 
     children: [NodeSchema]
 });
 
