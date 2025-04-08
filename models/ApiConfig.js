@@ -1,6 +1,8 @@
 import { Schema, model } from 'mongoose';
 import ApiTypes from '../Data/ApiTypes.js';
 import ApiOperators from "../Data/ApiOperators.js";
+import columTypes from "../Data/ColumTypes.js";
+import InputConnectorTypes from "../Data/InputConnectorTypes.js";
 
 const schema = Schema;
 
@@ -14,9 +16,28 @@ const schema = Schema;
 //     }]
 // })
 
-const Options = new Schema({
+// While running api, maintain a list of outputs from each query so next queries can access
+
+const Source = new Schema({
+    name: String,
+    type: {type: String, enum: Object.values(columTypes)},
+    index: {type: Number},
+})
+
+const inputConnector = new Schema({
+    valueSources: [Source], // Number is the offset to the input query, array to separate find and update cases
     column: String,
     operator: {type: String, enum:Object.values(ApiOperators), default: "$eq"},
+    type: { type: String, enum: Object.values(InputConnectorTypes), required: true },
+})
+
+
+
+
+const Query = new Schema({
+    model: {type: Schema.Types.ObjectId, ref: "Model"},
+    inputConnectors: [{type: inputConnector}], // have set/search params with origin
+    outputColumns: [String]
 })
 
 
@@ -30,17 +51,12 @@ const ApiSchema = new Schema({
         type: schema.Types.ObjectId,
         ref: "Users",
     },
-    model: {
-        type: Schema.Types.ObjectId,
-        ref: "Models",
-    },
-    searchParams: [{type: Options}],
-    setParams: [String],
-    responseParams: [String],
-    // options: [{type: Options}],
+    requestParams: [Source],
+    responseParams: [Source],
+    queries: [Query],
     deployed: {type: Boolean, default: false},
-    middleware: {type: Schema.Types.ObjectId, ref: "Middlewares", },
-    type: { type: String, enum: Object.values(ApiTypes), required: true },
+    middleware: [{type: Schema.Types.ObjectId, ref: "Middlewares", }],
+    // type: { type: String, enum: Object.values(ApiTypes), required: true },
 });
 
 const ApiConfigs = model('ApiConfigs', ApiSchema);

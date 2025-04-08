@@ -25,6 +25,7 @@ const NodeSchema = new Schema()
 
 const ApiBuilderSchema = new Schema({
     apiConfig: {type: schema.Types.ObjectId, ref: "ApiConfigs", required: true},
+    valid: {type: Boolean, default: false},
     nodes: [NodeSchema]
 })
 

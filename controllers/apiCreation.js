@@ -212,6 +212,31 @@ const deployAPI = async (req, res) => {
     }
 }
 
+const runApi = async (req, res) => {
+
+    /*
+
+    1. Find Api config
+    2. Find parameters required for api (defined in request node)
+        2.1 create array for outputs with inital values null (output array)
+        2.2 place initial values in index 0
+    3. go through the Query array in the config
+        3.1 check if the previous values exist (using offsets in datasources)
+            3.1.1 if not, pass to the next one (we will circle back until all are done
+                -> if the function returns null, it did not complete
+            3.1.2 if yes, run the current query and save its outputs in the output array
+        3.2 check if all the queries are run (using the output array)
+            3.2.1 if not, start from the start
+        3.3 create the response
+        3.4 send the resposne
+
+
+     */
+
+    const {name, project} = req.params;
+
+}
+
 const createMiddleware = async (req, res) => {
     const { name, project, model, role_col, accessible_roles } = req.body;
     checkParamsExist(res, [name, project, model, role_col, accessible_roles]);
