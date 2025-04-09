@@ -344,7 +344,11 @@ const runApi = async (req, res) => {
 
                 // Ensure source index is valid
                 if (param.index >= 0 && param.index < outputs.length) {
-                    const sourceOutput = outputs[param.index][0];
+
+                    // if findOne used, works
+                    // if find used, sourceOutput is an array and need to loop through it
+                    // requires more testing to see if it works properly
+                    const sourceOutput = outputs[param.index];
 
 
                     console.log('param:', param);
@@ -354,7 +358,8 @@ const runApi = async (req, res) => {
                     if (sourceOutput !== null && typeof sourceOutput === 'object' && param.sourceName in sourceOutput) {
                         finalResponse[param.name] = sourceOutput[param.sourceName];
                         console.log(`runApi: Mapping response param '${param.name}' from output index ${param.index}.`);
-                    } else if (sourceOutput !== null && param.index > 0 && typeof sourceOutput !== 'object' && !param.name) {
+                    }
+                    else if (sourceOutput !== null && param.index > 0 && typeof sourceOutput !== 'object' && !param.name) {
                         // Case: Source output is likely a primitive, and no specific name is required by responseParam config.
                         // Requires a convention for naming. Using a generic name.
                         const responseKey = `output_${param.index}`;
