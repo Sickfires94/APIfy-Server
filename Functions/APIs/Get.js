@@ -3,6 +3,7 @@ import {buildMongooseQuery} from "../Helper Functions/MongooseQueryBuilder.js";
 
 export const GetFlow = async (api, model, searchParams, res) => {
     const userModel = await mongoose.model(model)
+    console.log(model)
     console.log("**********************************")
     console.log("Project: " + model)
 

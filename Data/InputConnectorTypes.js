@@ -1,5 +1,5 @@
 const InputConnectorTypes = Object.freeze({
-    UPDATE: 'UPDATE',
+    UPDATE: 'update',
     FIND: 'find',
     FIND_ONE: 'findOne',
     FIND_UPDATE: "findUpdate"

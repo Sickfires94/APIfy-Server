@@ -12,29 +12,38 @@ const createMongooseModelAPI = async (req, res, next) => {
 
     const api = await ApiConfigs.findOne({name: name, project: project}).exec();
     //if (!mongoose.modelNames().includes(fullModelName)) {
-    console.log("api: ", api)
+    // console.log("api: ", api)
 
     if(!api) return res.status(404).send("No API returned with that name!").end()
 
-    const model = await Model.findOne({
+    for (const queryElement of api.queries) {
+        const index = api.queries.indexOf(queryElement);
+        const modelId = queryElement.model;
 
-        project: project,
-        _id: api.model,
-    }).exec();
+        let model = await Model.findOne({
+            project: project,
+            _id: modelId,
+        }).exec();
 
-    if (!model) {
-        return res.status(404).send("Model definition not found");
+        if (!model) {
+            res.status(404).send("Model definition not found");
+        }
+
+
+        const fullModelName = `${model.name}-${project}`;
+        console.log("fullModelName: ", fullModelName)
+       // req.modelName = fullModelName
+        if (!mongoose.modelNames().includes(fullModelName)) {
+            const schemaDefinition = parseSchema(model.colums);
+            const mongooseSchema = await new mongoose.Schema(schemaDefinition);
+
+            const Model = await mongoose.model(fullModelName, mongooseSchema,  fullModelName, {
+                overwriteModels: true
+            });
+        }
+
     }
 
-
-    const fullModelName = `${model.name}-${project}`;
-    req.modelName = fullModelName
-    if (!mongoose.modelNames().includes(fullModelName)) {
-        const schemaDefinition = parseSchema(model.colums);
-        const mongooseSchema = new mongoose.Schema(schemaDefinition);
-
-        mongoose.model(fullModelName, mongooseSchema);
-    }
 
     next();
 };

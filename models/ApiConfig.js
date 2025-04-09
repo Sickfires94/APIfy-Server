@@ -22,11 +22,13 @@ const Source = new Schema({
     name: String,
     type: {type: String, enum: Object.values(columTypes)},
     index: {type: Number},
+    sourceName: String,
 })
 
 const inputConnector = new Schema({
     valueSources: [Source], // Number is the offset to the input query, array to separate find and update cases
     column: String,
+    findOne: Boolean,
     operator: {type: String, enum:Object.values(ApiOperators), default: "$eq"},
     type: { type: String, enum: Object.values(InputConnectorTypes), required: true },
 })
@@ -35,7 +37,8 @@ const inputConnector = new Schema({
 
 
 const Query = new Schema({
-    model: {type: Schema.Types.ObjectId, ref: "Model"},
+    model: {type: Schema.Types.ObjectId, ref: "Models"},
+
     inputConnectors: [{type: inputConnector}], // have set/search params with origin
     outputColumns: [String]
 })
@@ -58,6 +61,8 @@ const ApiSchema = new Schema({
     middleware: [{type: Schema.Types.ObjectId, ref: "Middlewares", }],
     // type: { type: String, enum: Object.values(ApiTypes), required: true },
 });
+
+
 
 const ApiConfigs = model('ApiConfigs', ApiSchema);
 
