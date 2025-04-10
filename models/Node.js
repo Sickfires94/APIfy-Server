@@ -10,6 +10,12 @@ const ConfigurationSchema = new Schema({
     operator: { type: String },
   }, { _id: false });
   
+  const EdgeSchema = new Schema({
+    id: {type: String},
+    type: {type: String}
+  }, {_id: false});
+
+
 const NodeSchema = new Schema()
     NodeSchema.add({
     x: {type: Number},
@@ -18,10 +24,12 @@ const NodeSchema = new Schema()
     name: {type: String},
     type: {type: String},
     nodeType: {type: String},
-    edges: [{type: String}],
+    edges: [EdgeSchema],
+    edgesFrom: [EdgeSchema],
     configuration: ConfigurationSchema, 
     children: [NodeSchema]
 });
+
 
 const ApiBuilderSchema = new Schema({
     apiConfig: {type: schema.Types.ObjectId, ref: "ApiConfigs", required: true},
