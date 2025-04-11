@@ -54,6 +54,12 @@ const addColum = async (req, res) => {
         objectColums = enumList 
     }
 
+    if(type === ColumTypes.OBJECT){
+        const {ref} = req.body;
+        if(!checkParamsExist(res, [ref])) return res;
+        objectColums[0] = ref // should contain full model name i.e, modelName-ProjectName
+    }
+
     const newColum = {
         columName,
         type,
@@ -118,7 +124,7 @@ const addRow = async (req,res)=>{
     await row.save();
     console.log(row);
 
-    res.end();
+    res.status(200).json({"data": row}).end();
 }
 
 const getData = async (req,res)=>{

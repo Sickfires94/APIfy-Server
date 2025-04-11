@@ -9,6 +9,8 @@ const createMongooseModel = async (req, res, next) => {
     const userId = req.user.id;
     const fullModelName = `${modelName}-${projectId}`;
     req.modelName = fullModelName
+    console.log(fullModelName);
+    console.log(userId);
 
     try {
         const model = await Model.findOne({
