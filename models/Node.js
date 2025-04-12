@@ -12,7 +12,8 @@ const ConfigurationSchema = new Schema({
 
 const EdgeSchema = new Schema({
   id: { type: String },
-  type: { type: String }
+  type: { type: String },
+  name: {type: String},
 }, { _id: false });
 
 const outputSchema = Schema({
