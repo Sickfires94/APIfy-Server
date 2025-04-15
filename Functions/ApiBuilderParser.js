@@ -2,31 +2,11 @@ import ApiConfig from "../models/ApiConfig.js"; // Adjust path if needed
 import ApiBuilder from "../models/Node.js"; // Adjust path if needed
 import InputConnectorTypes from "../Data/InputConnectorTypes.js"; // Adjust path if needed
 import mongoose from "mongoose";
-
-
-const ApiBuilderParser = async (states) => {
-
-
-
-    /*
-
-    if this fails, set builderschema.valid == false and apiConfig.deployed == false
-
-        1.convert the "table" (node/nodetype) nodes into and array of queries
-            1.1. only have models and outputColumns initially
-        2. go through the edges in each node and generate input connectors
-            2.1. for offsets, use relative locations in the queries array
-        3. map request and response params to the correct params (again use nodeType)
-        4. save the config
-
-    if successful, set builderschema.valid == true
-
-     */
-
-
-    // possible parser code
-    // DO NOT RUN WILL PROBABLY NOT WORK YET
-
+import NodeTypes from "../Data/NodeTypes.js";
+import Models from "../models/Model.js";
+import sourceTypes from "../Data/sourceTypes.js";
+import {query} from "express";
+import ApiConfigs from "../models/ApiConfig.js";
 
 // Helper function to find a node by its ID within the nodes array
     const findNodeById = (nodes, id) => nodes.find(n => n.id === id);
@@ -311,6 +291,182 @@ const ApiBuilderParser = async (states) => {
         }
     };
 
+
+    const ApiBuilderParser2 = async (apiConfig, nodes) => {
+        /*
+
+    if this fails, set builderschema.valid == false and apiConfig.deployed == false
+
+        1.convert the "table" (node/nodetype) nodes into an array of queries
+            1.1. only have models and outputColumns initially
+        2. go through the edges in each node and generate input connectors
+            2.1. for offsets, use relative locations in the queries array
+        3. map request and response params to the correct params (again use nodeType)
+        4. save the config
+
+    if successful, set builderschema.valid == true
+
+     */
+
+
+
+        let valid = true;
+        let error = ""
+
+        const api = await ApiConfigs.findById(apiConfig)
+        if(!api) {
+            valid = false;
+            error += "Api Config Not Found\n"
+        }
+
+        // Initialize map to map edges for fast indexing
+        let map = new Map();
+
+        // Get Request Node
+        let requestParams = []
+        let requestNode = nodes[0]
+
+        console.log("requestNode: " + JSON.stringify(requestNode));
+
+        // Parse Request Node
+        if(!(requestNode.nodeType === "requestParams")) {
+            valid = false;
+            error += "Request Instance type not correct\n"
+        }
+
+        for (const param of requestNode.children) {
+            let reqParam = {}
+            reqParam.name = param.name;
+            reqParam.type = param.type;
+
+            map.set(param.id, {index: 0, name: param.name});
+
+            requestParams.push(reqParam);
+        }
+
+
+
+
+        // Generate initial queries
+        let queries = []
+
+        for(let i = 2; i < nodes.length; i++){
+            let query = {}
+            let node = nodes[i]
+
+
+            console.log("Current Node: " + node)
+
+            switch (node.nodeType) {
+                case NodeTypes.TABLE_NODE:
+                    console.log("Found Table node")
+                    const model = await Models.findOne({project: api.project, name: node.name})
+                    query.model = model._id;
+                    query.outputColumns = [];
+                    for (const output of node.configuration.outputColums) {
+                        query.outputColumns.push(output.name);
+                    }
+
+                    if(node.configuration.outputColums.length === 0){
+                        query.outputColumns.push(node.name);
+                    }
+
+                    console.log("Mapping Children")
+                    for(const child of node.children) {
+                        await map.set(child.id, {index: i - 1, name: child.name});
+                    }
+                    break;
+            }
+
+            queries.push(query);
+        }
+
+        for(let i = 2; i < nodes.length; i++){
+            let connectors = [];
+            for(const column of nodes[i].children){
+
+                console.log("Current Column: " + JSON.stringify(column));
+
+                if( !column.edgesFrom || column.edgesFrom.length === 0) continue;
+                let connector = {}
+                let valueSources = [null, null]
+
+
+                for(const edge of column.edgesFrom){
+                    let source = {}
+                    source.name = column.name;
+                    // source.type = column.type;
+                    console.log(edge.id)
+                    source.index = await map.get(edge.id).index;
+                    source.sourceName = await map.get(edge.id).name;
+                    connector.type = edge.type;
+                    switch(edge.type){
+                        case (sourceTypes.FIND): {
+                            valueSources[0] = source;
+                            connector.operator = edge.operator;
+                            break;
+                        }
+
+                        case (sourceTypes.UPDATE): {
+                            valueSources[1] = source;
+                            break;
+                        }
+
+                        default: {
+                            valid = false;
+                            error += "edge type invalid\n"
+                        }
+                    }
+                }
+
+                connector.valueSources = valueSources;
+                connector.column = column.name;
+
+
+                connectors.push(connector);
+            }
+
+
+            queries[i - 2].inputConnectors = connectors;
+            queries[i - 2].findOne = (nodes[i].configuration.queryType === InputConnectorTypes.FIND_ONE ||
+                                nodes[i].configuration.queryType === InputConnectorTypes.FIND_UPDATE)
+        }
+
+
+
+        // Parse Response Node
+        let responseParams = []
+        let responseNode = nodes[1]
+
+        if (!(responseNode.nodeType === "responseNode")) {
+            valid = false;
+            error += "Response Instance type not correct\n"
+        }
+
+        for (const param of responseNode.children) {
+            let resParam = {}
+            resParam.name = param.name;
+            resParam.type = param.type;
+            resParam.index = map.get(param.edgesFrom[0].id).index;
+            resParam.sourceName = map.get(param.edgesFrom[0].id).name;
+
+            responseParams.push(resParam);
+        }
+
+        console.log("valid: " + valid + ", " + error)
+        if(valid) {
+
+            api.requestParams = requestParams;
+            api.responseParams = responseParams;
+            api.queries = queries;
+
+
+            await api.save()
+            console.log("Api Config Saved/Updated ")
+        }
+
+        return {valid: valid, error: error};
+    }
+
 // Make sure to export the function
-    export default ApiBuilderParser;
-}
+ export default ApiBuilderParser2;

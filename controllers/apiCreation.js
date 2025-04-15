@@ -348,7 +348,7 @@ const runApi = async (req, res) => {
                     // if findOne used, works
                     // if find used, sourceOutput is an array and need to loop through it
                     // requires more testing to see if it works properly
-                    const sourceOutput = outputs[param.index];
+                    const sourceOutput = outputs[param.index][0];
 
 
                     console.log('param:', param);

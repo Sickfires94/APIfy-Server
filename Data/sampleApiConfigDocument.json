@@ -1,0 +1,114 @@
+{
+  "name": "UpdateBookStatusByAuthor",
+  "project": {
+    "$oid": "672ee48bcdadbc179a6c3efd"
+  },
+  "user": {
+    "$oid": "6714e58bd2fc1fb31ad4f019"
+  },
+  "deployed": false,
+  "requestParams": [
+    {
+      "name": "authorName",
+      "type": "string",
+      "index": 0
+    },
+    {
+      "name": "newStatus",
+      "type": "string",
+      "index": 0
+    }
+  ],
+  "queries": [
+    {
+      "model": {
+        "$oid": "67f6b36b448d2e22cd21fedd"
+      },
+      "inputConnectors": [
+        {
+          "valueSources": [
+            {
+              "name": "authorName",
+              "index": 0
+            }
+          ],
+          "column": "name",
+          "operator": "$eq",
+          "type": "findOne"
+        }
+      ],
+      "outputColumns": [
+        "_id"
+      ]
+    },
+    {
+      "model": {
+        "$oid": "67f6b062448d2e22cd21fed9"
+      },
+      "inputConnectors": [
+        {
+          "valueSources": [
+            {
+              "name": "_id",
+              "index": 1
+            }
+          ],
+          "column": "authorId",
+          "operator": "$eq",
+          "type": "findOne"
+        }
+      ],
+      "outputColumns": [
+        "_id",
+        "title",
+        "status"
+      ]
+    },
+    {
+      "model": {
+        "$oid": "67f6b062448d2e22cd21fed9"
+      },
+      "inputConnectors": [
+        {
+          "valueSources": [
+            {
+              "name": "_id",
+              "index": 2
+            }
+          ],
+          "column": "_id",
+          "operator": "$eq",
+          "type": "findOne"
+        },
+        {
+          "valueSources": [
+            {
+              "name": "newStatus",
+              "index": 0
+            }
+          ],
+          "column": "status",
+          "operator": "$set",
+          "type": "update"
+        }
+      ],
+      "outputColumns": [
+        "_id",
+        "status"
+      ]
+    }
+  ],
+  "responseParams": [
+    {
+      "name": "updatedBookId",
+      "index": 3,
+      "sourceName": "_id"
+    },
+    {
+      "name": "finalStatus",
+      "index": 3,
+      "sourceName": "status"
+    }
+  ],
+  "__v": 0
+}
