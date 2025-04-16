@@ -1,8 +1,7 @@
 import mongoose from 'mongoose';
 import InputConnectorTypes from "../Data/InputConnectorTypes.js"; // Ensure this path is correct
-import { buildMongooseQuery } from "./Helper Functions/MongooseQueryBuilder.js"; // Ensure this path is correct
-
-const ObjectId = mongoose.Types.ObjectId;
+import Models from "../models/Model.js";
+import {query} from "express"; // Ensure this path is correct
 
 
 const runQuery = async (Query, outputs) => {
@@ -43,12 +42,10 @@ const runQuery = async (Query, outputs) => {
     for (const connector of Query.inputConnectors) {
         let value;
         if (connector.valueSources.length > 0) {
-            console.log("Connector: " + JSON.stringify(connector));
             let source = connector.valueSources[0];
 
             if(source === null) source = connector.valueSources[1];
 
-            console.log("source: " + JSON.stringify(source));
 
             value = outputs[source.index]?.[source.sourceName] ?? outputs[source.index];
 
@@ -144,6 +141,77 @@ const runQuery = async (Query, outputs) => {
         return { error: true, message: "Query execution failed", details: error.message };
     }
 };
+
+
+const runQuery2 = async (Query, outputs) => {
+
+    /*
+1. go through the value sources (inside connectors) and check if any of them are null in the outputs array
+    1.1 if any are null, return null (we are waiting for them to finish)
+2. loop through the input connectors
+    (The following should have a maximum of 1 of each for each column)
+    (The following could be done simultaneously using the type of the connector)
+    2.1. find the finding connectors and create a mongoose find query
+    2.2. find the updating connectors and create a mongoose update query
+3. check if the query requires findOne or find, call the correct one
+    3.1 check if the update query is empty
+        3.1.1 if its empty, only call findOne/find
+        3.1.2 if its not empty, call findOneAndUpdate/findAndUpdate
+4. await the query and return it
+*/
+
+    // Check if all dependencies are fulfilled
+    for (const connector of Query.inputConnectors) {
+        for (const source of connector.valueSources) {
+
+            if(source === null) continue;
+
+            // Check if the index exists and the value at that index is not null/undefined
+            if (source.index >= outputs.length || outputs[source.index] === null || outputs[source.index] === undefined) {
+                console.log(`runQuery: Waiting for output dependency from index ${source.index}`);
+                return null; // Indicate that the query cannot run yet due to missing dependency
+            }
+        }
+    }
+
+    const model = await Models.findById(Query.model);
+    if(!model) {
+        console.log(`runQuery: Failed to find model with id ${query.id}`);
+        return null;
+    }
+
+    let findQuery = null;
+    let updateQuery = null;
+    let findOne = Query.findOne; // Flag to determine if findOne or find/updateMany should be used
+    let output = null;
+
+    for (const connector of Query.inputConnectors) {
+        if(connector.valueSources[0]) findQuery = addToQuery(connector.valueSources[0], findQuery, outputs);
+        if(connector.valueSources[1]) updateQuery = addToQuery(connector.valueSources[1], updateQuery, outputs);
+    }
+
+
+    if(findOne) {
+        if(updateQuery !== null) await model.updateOne(findQuery, updateQuery);
+        output = await model.findOne(findQuery);
+    }
+    else {
+        if(updateQuery !== null) await model.updateMany(findQuery, updateQuery);
+        output = await model.find(findQuery);
+    }
+
+    return output;
+
+}
+
+
+const addToQuery = (source, operationQuery, outputs) => {
+    if(operationQuery === null) operationQuery = {};
+    operationQuery[source.name] = outputs[source.index][source.SourceName];
+
+    return operationQuery;
+}
+
 
 // Ensure the function is exported for use in other modules
 export default runQuery;

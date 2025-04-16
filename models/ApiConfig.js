@@ -37,7 +37,7 @@ const inputConnector = new Schema({
 
 const Query = new Schema({
     model: {type: Schema.Types.ObjectId, ref: "Models"},
-    findOne: Boolean, // TODO Implement this change in runQuery function
+    findOne: Boolean,
     inputConnectors: [{type: inputConnector, required: false}], // have set/search params with origin
     outputColumns: [String]
 })
