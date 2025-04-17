@@ -13,14 +13,9 @@ const ConfigurationSchema = new Schema({
 const EdgeSchema = new Schema({
   id: { type: String },
   type: { type: String },
+  operator: { type: String },
   name: {type: String},
 }, { _id: false });
-
-const outputSchema = Schema({
-  id: {type: String},
-  outputColums: [String],
-  edges: [EdgeSchema]
-})
 
 const NodeSchema = new Schema()
 NodeSchema.add({
@@ -34,7 +29,7 @@ NodeSchema.add({
   edgesFrom: [EdgeSchema],
   configuration: ConfigurationSchema,
   children: [NodeSchema],
-  output: outputSchema
+  outputColums: [String]
 
 });
 
