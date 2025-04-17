@@ -1,5 +1,6 @@
 const NodeTypes = Object.freeze({
     TABLE_NODE: 'tableNode',
+    TABLE_OUTPUT: 'tableOutput',
     REQUEST_PARAMS: 'requestParams',
     RESPONSE_PARAMS: 'responseParams',
     REQUEST_INSTANCE: 'requestInstance',

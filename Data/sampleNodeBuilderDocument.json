@@ -1,196 +1,158 @@
-{
-  "apiConfig": {
-    "$oid": "67fdf8d75f39e89f3093a2c8"
+[
+  {
+    "_id": "6800fbbe2c4027b862ce6b25",
+    "x": 93.49753694581278,
+    "y": 92.68472906403942,
+    "id": "1",
+    "name": "Request Parameters",
+    "type": "request",
+    "nodeType": "requestParams",
+    "edges": [],
+    "children": [
+      {
+        "id": "1c1",
+        "name": "authorName",
+        "nodeType": "requestInstance",
+        "edges": [
+          {
+            "id": "5c0",
+            "type": "find",
+            "operator": "equals"
+          }
+        ],
+        "edgesFrom": [],
+        "type": "string"
+      }
+    ],
+    "outputColums": [],
+    "edgesFrom": []
   },
-  "nodes": [
-    {
-      "_id": {
-        "$oid": "67fdf8d75f39e89f3093a2ca"
-      },
-      "x": -262.6278730677642,
-      "y": -183.50906439843385,
-      "id": "1",
-      "name": "Request Parameters",
-      "type": "request",
-      "nodeType": "requestParams",
-      "edges": [],
-      "edgesFrom": [],
-      "children": [
-        {
-          "_id": {
-            "$oid": "67fdf92c5f39e89f3093a2f4"
-          },
-          "id": "1c1",
-          "name": "Book Name",
-          "type": "string",
-          "nodeType": "requestInstance",
-          "edges": [
-            {
-              "id": "3c0",
-              "type": "find"
-            }
-          ],
-          "edgesFrom": [],
-          "children": []
-        },
-        {
-          "_id": {
-            "$oid": "67fdf92c5f39e89f3093a2f5"
-          },
-          "id": "1c2",
-          "name": "Author Name",
-          "type": "string",
-          "nodeType": "requestInstance",
-          "edges": [],
-          "edgesFrom": [],
-          "children": []
-        }
-      ]
+  {
+    "_id": "6800fbbe2c4027b862ce6b26",
+    "x": 1222.239594964905,
+    "y": -59.22451647525992,
+    "id": "2",
+    "name": "Response",
+    "type": "response",
+    "nodeType": "responseNode",
+    "edges": [],
+    "children": [
+      {
+        "id": "2c1",
+        "name": "Book",
+        "nodeType": "responseInstance",
+        "edges": [],
+        "edgesFrom": [
+          {
+            "id": "4coutput",
+            "type": "input",
+            "operator": null
+          }
+        ],
+        "type": "string"
+      }
+    ],
+    "outputColums": [],
+    "edgesFrom": []
+  },
+  {
+    "x": 463.36761755113974,
+    "y": -408.73757215883995,
+    "id": "3",
+    "name": "Generate Token",
+    "type": "function",
+    "nodeType": "functionNode",
+    "children": []
+  },
+  {
+    "x": 844.1074538592339,
+    "y": -230.6384429851625,
+    "id": "4",
+    "name": "books",
+    "type": "table",
+    "nodeType": "tableNode",
+    "configuration": {
+      "queryType": "findAll"
     },
-    {
-      "_id": {
-        "$oid": "67fdf8d75f39e89f3093a2cb"
+    "children": [
+      {
+        "id": "4c0",
+        "name": "name",
+        "nodeType": "columNode"
       },
-      "x": 1006.5853835936551,
-      "y": -218.1235431912659,
-      "id": "2",
-      "name": "Response",
-      "type": "response",
-      "nodeType": "responseNode",
-      "edges": [],
-      "edgesFrom": [],
-      "children": [
-        {
-          "_id": {
-            "$oid": "67fdf92c5f39e89f3093a2f7"
-          },
-          "id": "2c1",
-          "name": "books",
-          "type": "string",
-          "nodeType": "responseInstance",
-          "edges": [],
-          "edgesFrom": [
-            {
-              "id": "3c0",
-              "type": "find"
-            },
-            {
-              "id": "3coutput",
-              "type": "find"
-            }
-          ],
-          "children": []
-        }
-      ]
+      {
+        "id": "4c1",
+        "name": "pages",
+        "nodeType": "columNode"
+      },
+      {
+        "id": "4c2",
+        "name": "author",
+        "nodeType": "columNode",
+        "edgesFrom": [
+          {
+            "id": "5c0",
+            "type": "find",
+            "operator": "equals"
+          }
+        ]
+      },
+      {
+        "id": "4coutput",
+        "name": "output",
+        "nodeType": "tableOutput",
+        "outputColums": [
+          "name",
+          "author",
+          "output",
+          "pages"
+        ],
+        "edges": [
+          {
+            "id": "2c1",
+            "type": "input",
+            "operator": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "x": 489.5479420171928,
+    "y": 182.16909859495541,
+    "id": "5",
+    "name": "authors",
+    "type": "table",
+    "nodeType": "tableNode",
+    "configuration": {
+      "queryType": "findOne"
     },
-    {
-      "_id": {
-        "$oid": "67fdf92c5f39e89f3093a2f8"
+    "children": [
+      {
+        "id": "5c0",
+        "name": "name",
+        "nodeType": "columNode",
+        "edgesFrom": [
+          {
+            "id": "1c1",
+            "type": "find",
+            "operator": "equals"
+          }
+        ],
+        "edges": [
+          {
+            "id": "4c2",
+            "type": "find",
+            "operator": "equals"
+          }
+        ]
       },
-      "x": 189.38872243155754,
-      "y": -168.26173678135075,
-      "id": "3",
-      "name": "books",
-      "type": "table",
-      "nodeType": "tableNode",
-      "edges": [],
-      "edgesFrom": [],
-      "configuration": {
-        "queryType": "findAll",
+      {
+        "id": "5coutput",
+        "name": "output",
+        "nodeType": "tableOutput",
         "outputColums": []
-      },
-      "children": [
-        {
-          "_id": {
-            "$oid": "67fdf92c5f39e89f3093a2f9"
-          },
-          "id": "3c0",
-          "name": "name",
-          "nodeType": "columNode",
-          "edges": [
-            {
-              "id": "2c1",
-              "type": "find"
-            }
-          ],
-          "edgesFrom": [
-            {
-              "id": "1c1",
-              "type": "find"
-            }
-          ],
-          "children": []
-        },
-        {
-          "_id": {
-            "$oid": "67fdf92c5f39e89f3093a2fa"
-          },
-          "id": "3c1",
-          "name": "pages",
-          "nodeType": "columNode",
-          "edges": [],
-          "edgesFrom": [],
-          "children": []
-        },
-        {
-          "_id": {
-            "$oid": "67fdf92c5f39e89f3093a2fb"
-          },
-          "id": "3coutput",
-          "name": "output",
-          "nodeType": "tableOutput",
-          "edges": [
-            {
-              "id": "2c1",
-              "type": "find"
-            }
-          ],
-          "edgesFrom": [],
-          "children": []
-        }
-      ]
-    },
-    {
-      "_id": {
-        "$oid": "67fdf92c5f39e89f3093a2fc"
-      },
-      "x": 573.9496600637685,
-      "y": 175.058999689228,
-      "id": "4",
-      "name": "authors",
-      "type": "table",
-      "nodeType": "tableNode",
-      "edges": [],
-      "edgesFrom": [],
-      "configuration": {
-        "queryType": "findOne",
-        "outputColums": []
-      },
-      "children": [
-        {
-          "_id": {
-            "$oid": "67fdf92c5f39e89f3093a2fd"
-          },
-          "id": "4c0",
-          "name": "name",
-          "nodeType": "columNode",
-          "edges": [],
-          "edgesFrom": [],
-          "children": []
-        },
-        {
-          "_id": {
-            "$oid": "67fdf92c5f39e89f3093a2fe"
-          },
-          "id": "4coutput",
-          "name": "output",
-          "nodeType": "tableOutput",
-          "edges": [],
-          "edgesFrom": [],
-          "children": []
-        }
-      ]
-    }
-  ],
-  "__v": 3
-}
+      }
+    ]
+  }
+]

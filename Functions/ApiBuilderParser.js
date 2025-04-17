@@ -7,6 +7,10 @@ import Models from "../models/Model.js";
 import sourceTypes from "../Data/sourceTypes.js";
 import {query} from "express";
 import ApiConfigs from "../models/ApiConfig.js";
+import QueryTypes from "../Data/QueryTypes.js";
+import {transformOperators} from "./Helper Functions/TransformOperators.js";
+import ApiTypes from "../Data/ApiTypes.js";
+import nodeTypes from "../Data/NodeTypes.js";
 
 // Helper function to find a node by its ID within the nodes array
     const findNodeById = (nodes, id) => nodes.find(n => n.id === id);
@@ -309,6 +313,7 @@ import ApiConfigs from "../models/ApiConfig.js";
      */
 
 
+        console.log("Nodes: " + JSON.stringify(nodes));
 
         let valid = true;
         let error = ""
@@ -354,82 +359,92 @@ import ApiConfigs from "../models/ApiConfig.js";
             let query = {}
             let node = nodes[i]
 
-
-            console.log("Current Node: " + node)
-
             switch (node.nodeType) {
                 case NodeTypes.TABLE_NODE:
                     console.log("Found Table node")
                     const model = await Models.findOne({project: api.project, name: node.name})
                     query.model = model._id;
                     query.outputColumns = [];
-                    for (const output of node.configuration.outputColums) {
-                        query.outputColumns.push(output.name);
-                    }
 
-                    if(node.configuration.outputColums.length === 0){
-                        query.outputColumns.push(node.name);
+                    switch (node.configuration.queryType) {
+                        case(QueryTypes.FIND_ONE):
+                            for (const output of node.children) {
+                                if(output.nodeType === nodeTypes.TABLE_OUTPUT) continue;
+                                query.outputColumns.push(output.name);
+                            }
+                            break;
+                        case (QueryTypes.FIND_ALL):
+                            query.outputColumns.push(node.name);
+                            break;
                     }
 
                     console.log("Mapping Children")
-                    for(const child of node.children) {
+                    for (const child of node.children) {
                         await map.set(child.id, {index: i - 1, name: child.name});
                     }
                     break;
             }
-
             queries.push(query);
         }
 
         for(let i = 2; i < nodes.length; i++){
-            let connectors = [];
-            for(const column of nodes[i].children){
+            switch(nodes[i].nodeType) {
+                case NodeTypes.TABLE_NODE:
+                    let connectors = [];
+                    for(const column of nodes[i].children){
 
-                console.log("Current Column: " + JSON.stringify(column));
+                        console.log("Current Column: " + JSON.stringify(column));
 
-                if( !column.edgesFrom || column.edgesFrom.length === 0) continue;
-                let connector = {}
-                let valueSources = [null, null]
+                        if( !column.edgesFrom || column.edgesFrom.length === 0) continue;
+                        let connector = {}
+                        let valueSources = [null, null]
 
 
-                for(const edge of column.edgesFrom){
-                    let source = {}
-                    source.name = column.name;
-                    // source.type = column.type;
-                    console.log(edge.id)
-                    source.index = await map.get(edge.id).index;
-                    source.sourceName = await map.get(edge.id).name;
-                    connector.type = edge.type;
-                    switch(edge.type){
-                        case (sourceTypes.FIND): {
-                            valueSources[0] = source;
-                            connector.operator = edge.operator;
-                            break;
+                        for(const edge of column.edgesFrom){
+                            let source = {}
+                            source.name = column.name;
+                            // source.type = column.type;
+                            console.log(edge.id)
+                            source.index = await map.get(edge.id).index;
+                            source.sourceName = await map.get(edge.id).name;
+                            connector.type = edge.type;
+                            switch(edge.type){
+                                case (sourceTypes.FIND): {
+                                    valueSources[0] = source;
+                                    connector.operator = ApiTypes[edge.operator];
+                                    break;
+                                }
+
+                                case (sourceTypes.UPDATE): {
+                                    valueSources[1] = source;
+                                    break;
+                                }
+
+                                default: {
+                                    valid = false;
+                                    error += "edge type invalid\n"
+                                }
+                            }
                         }
 
-                        case (sourceTypes.UPDATE): {
-                            valueSources[1] = source;
-                            break;
-                        }
+                        connector.valueSources = valueSources;
+                        connector.column = column.name;
 
-                        default: {
-                            valid = false;
-                            error += "edge type invalid\n"
-                        }
+
+                        connectors.push(connector);
                     }
-                }
-
-                connector.valueSources = valueSources;
-                connector.column = column.name;
 
 
-                connectors.push(connector);
+                    console.log("current node: " + JSON.stringify(nodes[i].configuration));
+                    queries[i - 2].inputConnectors = connectors;
+                    queries[i - 2].findOne = (nodes[i].configuration.queryType === InputConnectorTypes.FIND_ONE ||
+                        nodes[i].configuration.queryType === InputConnectorTypes.FIND_UPDATE)
+                    break;
+
+
+
             }
 
-
-            queries[i - 2].inputConnectors = connectors;
-            queries[i - 2].findOne = (nodes[i].configuration.queryType === InputConnectorTypes.FIND_ONE ||
-                                nodes[i].configuration.queryType === InputConnectorTypes.FIND_UPDATE)
         }
 
 
