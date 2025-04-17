@@ -26,20 +26,17 @@ const Source = new Schema({
 })
 
 const inputConnector = new Schema({
-    valueSources: [Source], // Number is the offset to the input query, array to separate find and update cases
+    valueSources: [Source], // Number is the index to the input query, array to separate find and update cases
     column: String,
-    findOne: Boolean,
     operator: {type: String, enum:Object.values(ApiOperators), default: "$eq"},
-    type: { type: String, enum: Object.values(InputConnectorTypes), required: true },
+    type: { type: String, enum: Object.values(InputConnectorTypes)},
 })
-
-
 
 
 const Query = new Schema({
     model: {type: Schema.Types.ObjectId, ref: "Models"},
-
-    inputConnectors: [{type: inputConnector}], // have set/search params with origin
+    findOne: Boolean,
+    inputConnectors: [{type: inputConnector, required: false}], // have set/search params with origin
     outputColumns: [String]
 })
 

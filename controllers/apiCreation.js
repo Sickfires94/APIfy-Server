@@ -348,7 +348,7 @@ const runApi = async (req, res) => {
                     // if findOne used, works
                     // if find used, sourceOutput is an array and need to loop through it
                     // requires more testing to see if it works properly
-                    const sourceOutput = outputs[param.index];
+                    const sourceOutput = outputs[param.index][0];
 
 
                     console.log('param:', param);
@@ -391,6 +391,54 @@ const runApi = async (req, res) => {
     }
 };
 
+const runApi2 = async (req, res) => {
+    /*
+    1. Find Api config
+    2. Find parameters required for api (defined in request node/requestParams)
+        2.1 create array for outputs with initial values null (output array)
+        2.2 place initial request parameters in index 0
+    3. go through the Query array in the config
+        3.1 call runQuery for each query, passing the current outputs array
+            3.1.1 if runQuery returns null, it means a dependency isn't met yet. Skip and try again in the next loop iteration.
+            3.1.2 if runQuery returns a result, save its output in the outputs array at the query's index + 1 (since index 0 is request params)
+        3.2 check if all the queries are run (check if all elements in outputs array, except index 0, are non-null)
+            3.2.1 if not all run, repeat step 3. Add a loop limit to prevent infinite loops.
+        3.3 create the response based on apiConfig.responseParams
+        3.4 send the response
+    */
+
+    const { name, project } = req.params;
+    console.log("Entered flow")
+    // Combine body, query, and potentially params as initial inputs
+    const requestInputs = { ...req.body, ...req.query, ...req.params }; // Using all potential input sources
+
+    const api = await ApiConfigs.findOne({name: name, project: project}).lean()
+    if(!api) return res.status(404).json({"error": "Api Not Found"})
+
+    let outputs = new Array(api.queries.length + 1).fill(null);
+
+    output[0] = {}  // To initialize request Params
+
+    try{
+        for(const paramSource of api.requestParams){
+            output[0][paramSource.name] = requestInputs[paramSource.name]
+        }
+    }
+    catch (e) {
+        console.error(`Error while initialising Request Params, ${e}`);
+    }
+
+
+    // Run Queries until resolved or error
+    let madeProgress
+
+    do {
+        madeProgress = false
+    }
+    while(madeProgress)
+
+}
+
 const createMiddleware = async (req, res) => {
     const { name, project, model, role_col, accessible_roles } = req.body;
     checkParamsExist(res, [name, project, model, role_col, accessible_roles]);
@@ -414,6 +462,8 @@ const createMiddleware = async (req, res) => {
     await middleware.save();
     res.json(middleware).end();
 };
+
+
 
 const addMiddleware = async (req, res) => {
     const { middleware_id, api_id } = req.body;

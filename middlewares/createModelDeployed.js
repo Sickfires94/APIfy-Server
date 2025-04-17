@@ -20,6 +20,8 @@ const createMongooseModelAPI = async (req, res, next) => {
         const index = api.queries.indexOf(queryElement);
         const modelId = queryElement.model;
 
+        console.log("Finding model by id: " + modelId)
+
         let model = await Model.findOne({
             project: project,
             _id: modelId,

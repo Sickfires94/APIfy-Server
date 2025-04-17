@@ -1,8 +1,7 @@
 import mongoose from 'mongoose';
 import InputConnectorTypes from "../Data/InputConnectorTypes.js"; // Ensure this path is correct
-import { buildMongooseQuery } from "./Helper Functions/MongooseQueryBuilder.js"; // Ensure this path is correct
-
-const ObjectId = mongoose.Types.ObjectId;
+import Models from "../models/Model.js";
+import {query} from "express"; // Ensure this path is correct
 
 
 const runQuery = async (Query, outputs) => {
@@ -24,6 +23,9 @@ const runQuery = async (Query, outputs) => {
     // 1. Check if all required inputs (value sources) are available in the outputs array
     for (const connector of Query.inputConnectors) {
         for (const source of connector.valueSources) {
+
+            if(source === null) continue;
+
             // Check if the index exists and the value at that index is not null/undefined
             if (source.index >= outputs.length || outputs[source.index] === null || outputs[source.index] === undefined) {
                 console.log(`runQuery: Waiting for output dependency from index ${source.index}`);
@@ -39,13 +41,15 @@ const runQuery = async (Query, outputs) => {
 
     for (const connector of Query.inputConnectors) {
         let value;
-        // Simplified assumption: the first valueSource provides the necessary value.
-        // This might need complex logic if multiple sources interact.
         if (connector.valueSources.length > 0) {
-            const source = connector.valueSources[0];
-            // Attempt to access the value from the dependency output based on source details
-            // Adjust the access logic (e.g., outputs[source.index][source.name]) based on the actual structure of elements in 'outputs'
-            value = outputs[source.index]?.[source.name] ?? outputs[source.index];
+            let source = connector.valueSources[0];
+
+            if(source === null) source = connector.valueSources[1];
+
+
+            value = outputs[source.index]?.[source.sourceName] ?? outputs[source.index];
+
+            console.log("value: " + JSON.stringify(value));
 
             if (value === undefined || value === null) {
                 console.log(`runQuery: Value for '${source.name}' from output index ${source.index} is unavailable.`);
@@ -62,6 +66,7 @@ const runQuery = async (Query, outputs) => {
             if (!findQuery[connector.column]) {
                 findQuery[connector.column] = {};
             }
+
             // Apply the specified operator and value
             findQuery[connector.column][connector.operator || '$eq'] = value; // Default to $eq if operator missing
             if(connector.type === InputConnectorTypes.FIND_ONE) {
@@ -92,21 +97,24 @@ const runQuery = async (Query, outputs) => {
     try {
         const isUpdateOperation = Object.keys(updateQuery).length > 0;
         // Select columns for find operations if specified
-        const projection = Query.outputColumns && Query.outputColumns.length > 0 ? Query.outputColumns.join(' ') : null;
+
+        console.log("Query = " + JSON.stringify(Query));
+
+        const projection = Query.outputColumns && Query.outputColumns.length > 0 ? Query.outputColumns.join(' ') : "";
 
         if (isUpdateOperation) {
             const options = { new: true }; // Return the modified document
             if (findOne) { // FIND_UPDATE with findOne preference
                 console.log(`runQuery: Executing findOneAndUpdate on ${modelName} | find=${JSON.stringify(findQuery)}, update=${JSON.stringify(updateQuery)}`);
                 await Model.findOneAndUpdate(findQuery, updateQuery);
-                result = await Model.findOne(findQuery, projection);
+                result = await Model.findOne(findQuery);
             } else { // FIND_UPDATE with find preference (implies updateMany)
                 console.log(`runQuery: Executing updateMany on ${modelName} | find=${JSON.stringify(findQuery)}, update=${JSON.stringify(updateQuery)}`);
                 // updateMany returns operation status, not the documents.
                 console.log(findQuery)
                 console.log(updateQuery)
                 await Model.updateMany(findQuery, updateQuery);
-                result = await Model.find(findQuery, projection);
+                result = await Model.find(findQuery);
                 // Consider if you need to fetch the updated documents separately
             }
         } else { // Read-only operation
@@ -116,10 +124,10 @@ const runQuery = async (Query, outputs) => {
                 // console.log(Model.schema)
                 console.log(`runQuery: Executing findOne on ${modelName} | find=${JSON.stringify(findQuery)}, projection=${projection}`);
                // if(modelName === "Books-672ee48bcdadbc179a6c3efd") console.log("*****************************************\n" + await Model.findOne({"authorId": new ObjectId("67f6b4546a73ece013915a74")}))
-                result = await Model.findOne(findQuery, projection);
+                result = await Model.findOne(findQuery);
             } else { // FIND
                 console.log(`runQuery: Executing find on ${modelName} | find=${JSON.stringify(findQuery)}, projection=${projection}`);
-                result = await Model.find(findQuery, projection);
+                result = await Model.find(findQuery);
             }
         }
 
@@ -133,6 +141,77 @@ const runQuery = async (Query, outputs) => {
         return { error: true, message: "Query execution failed", details: error.message };
     }
 };
+
+
+const runQuery2 = async (Query, outputs) => {
+
+    /*
+1. go through the value sources (inside connectors) and check if any of them are null in the outputs array
+    1.1 if any are null, return null (we are waiting for them to finish)
+2. loop through the input connectors
+    (The following should have a maximum of 1 of each for each column)
+    (The following could be done simultaneously using the type of the connector)
+    2.1. find the finding connectors and create a mongoose find query
+    2.2. find the updating connectors and create a mongoose update query
+3. check if the query requires findOne or find, call the correct one
+    3.1 check if the update query is empty
+        3.1.1 if its empty, only call findOne/find
+        3.1.2 if its not empty, call findOneAndUpdate/findAndUpdate
+4. await the query and return it
+*/
+
+    // Check if all dependencies are fulfilled
+    for (const connector of Query.inputConnectors) {
+        for (const source of connector.valueSources) {
+
+            if(source === null) continue;
+
+            // Check if the index exists and the value at that index is not null/undefined
+            if (source.index >= outputs.length || outputs[source.index] === null || outputs[source.index] === undefined) {
+                console.log(`runQuery: Waiting for output dependency from index ${source.index}`);
+                return null; // Indicate that the query cannot run yet due to missing dependency
+            }
+        }
+    }
+
+    const model = await Models.findById(Query.model);
+    if(!model) {
+        console.log(`runQuery: Failed to find model with id ${query.id}`);
+        return null;
+    }
+
+    let findQuery = null;
+    let updateQuery = null;
+    let findOne = Query.findOne; // Flag to determine if findOne or find/updateMany should be used
+    let output = null;
+
+    for (const connector of Query.inputConnectors) {
+        if(connector.valueSources[0]) findQuery = addToQuery(connector.valueSources[0], findQuery, outputs);
+        if(connector.valueSources[1]) updateQuery = addToQuery(connector.valueSources[1], updateQuery, outputs);
+    }
+
+
+    if(findOne) {
+        if(updateQuery !== null) await model.updateOne(findQuery, updateQuery);
+        output = await model.findOne(findQuery);
+    }
+    else {
+        if(updateQuery !== null) await model.updateMany(findQuery, updateQuery);
+        output = await model.find(findQuery);
+    }
+
+    return output;
+
+}
+
+
+const addToQuery = (source, operationQuery, outputs) => {
+    if(operationQuery === null) operationQuery = {};
+    operationQuery[source.name] = outputs[source.index][source.SourceName];
+
+    return operationQuery;
+}
+
 
 // Ensure the function is exported for use in other modules
 export default runQuery;
