@@ -19,7 +19,7 @@ const createMongooseModelAPI = async (req, res, next) => {
     for (const queryElement of api.queries) {
         const index = api.queries.indexOf(queryElement);
         const modelId = queryElement.model;
-
+        if(!modelId) continue;
         console.log("Finding model by id: " + modelId)
 
         let model = await Model.findOne({

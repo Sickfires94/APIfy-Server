@@ -49,7 +49,6 @@ const parseSchema = (colums) => {
             fieldType = [fieldType];
         }
 
-        // FIXED: Added const declaration
         const fieldOptions = {
             type: fieldType,
             required: colum.isRequired,

@@ -174,7 +174,19 @@ const runQuery2 = async (Query, outputs) => {
         }
     }
 
-    const model = await Models.findById(Query.model);
+    // TODO Implement for queries without models
+    if(!Query.model) {
+        console.log("No model for this Query")
+        return null;
+    }
+
+
+    // Get Model for Query
+    const modelDef = await Models.findById(Query.model);
+    const modelName = modelDef.name + "-" + modelDef.project;
+    const model = await mongoose.model(modelName)
+
+
     if(!model) {
         console.log(`runQuery: Failed to find model with id ${query.id}`);
         return null;
@@ -185,20 +197,28 @@ const runQuery2 = async (Query, outputs) => {
     let findOne = Query.findOne; // Flag to determine if findOne or find/updateMany should be used
     let output = null;
 
+
     for (const connector of Query.inputConnectors) {
         if(connector.valueSources[0]) findQuery = addToQuery(connector.valueSources[0], findQuery, outputs);
         if(connector.valueSources[1]) updateQuery = addToQuery(connector.valueSources[1], updateQuery, outputs);
     }
 
+    console.log("Find Query: " + JSON.stringify(findQuery));
+    console.log("Update Query: " + JSON.stringify(updateQuery));
+    console.log("Find One: " + findOne)
+
 
     if(findOne) {
         if(updateQuery !== null) await model.updateOne(findQuery, updateQuery);
-        output = await model.findOne(findQuery);
+        output = await model.findOne(findQuery, {"_id": 0});
     }
     else {
         if(updateQuery !== null) await model.updateMany(findQuery, updateQuery);
-        output = await model.find(findQuery);
+        output = {}
+        output[modelDef.name] = await model.find(findQuery, {"_id": 0});
     }
+
+    console.log("Query Output: " + JSON.stringify(output));
 
     return output;
 
@@ -207,11 +227,13 @@ const runQuery2 = async (Query, outputs) => {
 
 const addToQuery = (source, operationQuery, outputs) => {
     if(operationQuery === null) operationQuery = {};
-    operationQuery[source.name] = outputs[source.index][source.SourceName];
+    operationQuery[source.name] = outputs[source.index][source.sourceName];
+
+    console.log("Adding query: " + operationQuery[source.name]);
 
     return operationQuery;
 }
 
 
 // Ensure the function is exported for use in other modules
-export default runQuery;
+export {runQuery, runQuery2};

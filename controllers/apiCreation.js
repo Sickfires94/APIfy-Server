@@ -17,7 +17,7 @@ import { request, response } from "express";
 import { checkParamsExist } from "../Functions/Helper Functions/CheckBodyParams.js";
 import { transformOperators } from "../Functions/Helper Functions/TransformOperators.js";
 import ApiBuilder from "../models/Node.js";
-import runQuery from "../Functions/runQuery.js";
+import {runQuery} from "../Functions/runQuery.js";
 
 
 const createAPI = async (req, res) => {
