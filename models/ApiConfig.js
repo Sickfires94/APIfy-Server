@@ -3,6 +3,7 @@ import ApiTypes from '../Data/ApiTypes.js';
 import ApiOperators from "../Data/ApiOperators.js";
 import columTypes from "../Data/ColumTypes.js";
 import InputConnectorTypes from "../Data/InputConnectorTypes.js";
+import QueryTypes from "../Data/QueryTypes.js";
 
 const schema = Schema;
 
@@ -36,6 +37,7 @@ const inputConnector = new Schema({
 const Query = new Schema({
     model: {type: Schema.Types.ObjectId, ref: "Models"},
     findOne: Boolean,
+    type: {type: String, enum: Object.values(QueryTypes)},
     inputConnectors: [{type: inputConnector, required: false}], // have set/search params with origin
     outputColumns: [String]
 })

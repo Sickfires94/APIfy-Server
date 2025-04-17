@@ -1,7 +1,8 @@
 import mongoose from 'mongoose';
 import InputConnectorTypes from "../Data/InputConnectorTypes.js"; // Ensure this path is correct
 import Models from "../models/Model.js";
-import {query} from "express"; // Ensure this path is correct
+import {query} from "express";
+import QueryTypes from "../Data/QueryTypes.js"; // Ensure this path is correct
 
 
 const runQuery = async (Query, outputs) => {
@@ -209,13 +210,34 @@ const runQuery2 = async (Query, outputs) => {
 
 
     if(findOne) {
-        if(updateQuery !== null) await model.updateOne(findQuery, updateQuery);
+        if(updateQuery !== null) console.log("update result: " + JSON.stringify(await model.updateOne(findQuery, updateQuery)));
         output = await model.findOne(findQuery, {"_id": 0});
     }
     else {
-        if(updateQuery !== null) await model.updateMany(findQuery, updateQuery);
-        output = {}
-        output[modelDef.name] = await model.find(findQuery, {"_id": 0});
+        output = {} // Make output an object instead of seperate fields
+
+        switch (Query.type){
+            case (QueryTypes.UPDATE):
+                if(updateQuery !== null)
+                    await model.updateMany(findQuery, updateQuery);
+                output[modelDef.name] = await model.find(findQuery, {"_id": 0});
+                break;
+
+            case (QueryTypes.DELETE):
+                if(findQuery !== null)
+                output[modelDef.name] = await model.deleteMany(findQuery, {"_id": 0});
+                break;
+
+            case (QueryTypes.FIND_ALL):
+                output[modelDef.name] = await model.find(findQuery, {"_id": 0});
+                break;
+
+            case (QueryTypes.INSERT):
+                if(updateQuery !== null){
+                    output[modelDef.name] = new model(updateQuery);
+                    await output[modelDef.name].save();
+                }
+        }
     }
 
     console.log("Query Output: " + JSON.stringify(output));

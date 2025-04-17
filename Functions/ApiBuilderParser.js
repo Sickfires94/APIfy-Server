@@ -313,6 +313,8 @@ import nodeTypes from "../Data/NodeTypes.js";
      */
 
 
+
+
         let valid = true;
         let error = ""
 
@@ -402,7 +404,6 @@ import nodeTypes from "../Data/NodeTypes.js";
                         let connector = {}
                         let valueSources = [null, null]
 
-
                         for(const edge of column.edgesFrom){
                             let source = {}
                             source.name = column.name;
@@ -411,14 +412,20 @@ import nodeTypes from "../Data/NodeTypes.js";
                             source.index = await map.get(edge.id).index;
                             source.sourceName = await map.get(edge.id).name;
                             connector.type = edge.type;
-                            switch(edge.type){
+                            console.log(`Edge Type: ${edge.type}`);
+                            switch(edge.type) {
                                 case (sourceTypes.FIND): {
                                     valueSources[0] = source;
                                     connector.operator = ApiTypes[edge.operator];
                                     break;
                                 }
 
-                                case (sourceTypes.UPDATE): {
+                                case (sourceTypes.UPDATE || sourceTypes.INSERT): {
+                                    valueSources[1] = source;
+                                    break;
+                                }
+
+                                case (sourceTypes.INSERT): {
                                     valueSources[1] = source;
                                     break;
                                 }
@@ -438,9 +445,12 @@ import nodeTypes from "../Data/NodeTypes.js";
                     }
 
 
+                    const nodeQueryType =
+
                     queries[i - 2].inputConnectors = connectors;
-                    queries[i - 2].findOne = (nodes[i].configuration.queryType === InputConnectorTypes.FIND_ONE ||
-                        nodes[i].configuration.queryType === InputConnectorTypes.FIND_UPDATE)
+                    queries[i - 2].type = nodes[i].configuration.queryType;
+                    queries[i - 2].findOne = nodes[i].configuration.queryType === InputConnectorTypes.FIND_ONE
+
                     break;
 
 
