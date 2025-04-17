@@ -33,8 +33,6 @@ const inputConnector = new Schema({
 })
 
 
-
-
 const Query = new Schema({
     model: {type: Schema.Types.ObjectId, ref: "Models"},
     findOne: Boolean,

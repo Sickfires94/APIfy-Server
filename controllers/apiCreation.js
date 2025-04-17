@@ -415,8 +415,27 @@ const runApi2 = async (req, res) => {
     const api = await ApiConfigs.findOne({name: name, project: project}).lean()
     if(!api) return res.status(404).json({"error": "Api Not Found"})
 
-    
+    let outputs = new Array(api.queries.length + 1).fill(null);
 
+    output[0] = {}  // To initialize request Params
+
+    try{
+        for(const paramSource of api.requestParams){
+            output[0][paramSource.name] = requestInputs[paramSource.name]
+        }
+    }
+    catch (e) {
+        console.error(`Error while initialising Request Params, ${e}`);
+    }
+
+
+    // Run Queries until resolved or error
+    let madeProgress
+
+    do {
+        madeProgress = false
+    }
+    while(madeProgress)
 
 }
 
