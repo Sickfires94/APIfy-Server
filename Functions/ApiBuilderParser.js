@@ -420,7 +420,7 @@ import nodeTypes from "../Data/NodeTypes.js";
                                     break;
                                 }
 
-                                case (sourceTypes.UPDATE || sourceTypes.INSERT): {
+                                case (sourceTypes.UPDATE): {
                                     valueSources[1] = source;
                                     break;
                                 }
@@ -482,15 +482,23 @@ import nodeTypes from "../Data/NodeTypes.js";
             let resParam = {}
             resParam.name = param.name;
             resParam.type = param.type;
-            resParam.index = map.get(param.edgesFrom[param.edgesFrom.length - 1].id).index;
-            resParam.sourceName = map.get(param.edgesFrom[param.edgesFrom.length - 1].id).name; // Get the most updated Edge, should be 0 since there should only be 1 edge
-            // TODO fix the above, once frontend edges deletion when changing nodeType is implemented
 
+            const sourceEdge = param.edgesFrom[param.edgesFrom.length - 1];
+
+            if(sourceEdge) {
+
+                resParam.index = map.get(sourceEdge.id).index ?? 0;
+                resParam.sourceName = map.get(sourceEdge.id).name ?? ""; // Get the most updated Edge, should be 0 since there should only be 1 edge
+                // TODO fix the above, once frontend edges deletion when changing nodeType is implemented
+            }
 
             console.log(`sourceName: ${resParam.sourceName}`)
 
             responseParams.push(resParam);
+
         }
+
+        console.log(`ResponseParams: ${JSON.stringify(responseParams)}`)
 
         console.log("valid: " + valid + ", " + error)
         if(valid) {
