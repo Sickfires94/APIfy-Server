@@ -29,8 +29,9 @@ NodeSchema.add({
   edgesFrom: [EdgeSchema],
   configuration: ConfigurationSchema,
   children: [NodeSchema],
-  outputColums: [String]
-
+  outputColums: [String],
+  comparision: { type: String },
+  value: Schema.Types.Mixed
 });
 
 

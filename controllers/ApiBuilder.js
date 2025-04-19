@@ -26,11 +26,11 @@ const saveBuilderState = async (req, res) => {
     // console.log(saved_state.nodes);
 
 
-    const {valid, error} = await ApiBuilderParser2(apiConfigId, nodes)
-    saved_state.valid = valid;
+    // const {valid, error} = await ApiBuilderParser2(apiConfigId, nodes)
+    // saved_state.valid = valid;
     await saved_state.save();
 
-    if(!valid) return res.status(400).json({error: error, saved_state: saved_state});
+    // if(!valid) return res.status(400).json({error: error, saved_state: saved_state});
     return res.status(200).json(saved_state).end();
 };
 
