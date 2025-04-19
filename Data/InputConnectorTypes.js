@@ -2,7 +2,8 @@ const InputConnectorTypes = Object.freeze({
     UPDATE: 'update',
     FIND: "find",
     FIND_ONE: 'findOne',
-    FIND_UPDATE: "findUpdate"
+    DELETE: 'delete',
+    INSERT: 'insert',
 });
 
 export default InputConnectorTypes

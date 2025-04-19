@@ -313,7 +313,7 @@ import nodeTypes from "../Data/NodeTypes.js";
      */
 
 
-        console.log("Nodes: " + JSON.stringify(nodes));
+
 
         let valid = true;
         let error = ""
@@ -330,8 +330,6 @@ import nodeTypes from "../Data/NodeTypes.js";
         // Get Request Node
         let requestParams = []
         let requestNode = nodes[0]
-
-        console.log("requestNode: " + JSON.stringify(requestNode));
 
         // Parse Request Node
         if(!(requestNode.nodeType === "requestParams")) {
@@ -366,6 +364,9 @@ import nodeTypes from "../Data/NodeTypes.js";
                     query.model = model._id;
                     query.outputColumns = [];
 
+
+                    console.log(`${node.name} : ${node.configuration.queryType}`);
+
                     switch (node.configuration.queryType) {
                         case(QueryTypes.FIND_ONE):
                             for (const output of node.children) {
@@ -378,9 +379,14 @@ import nodeTypes from "../Data/NodeTypes.js";
                             break;
                     }
 
+                    console.log(`${node.name} outputs : ${query.outputColumns}`);
+
                     console.log("Mapping Children")
                     for (const child of node.children) {
-                        await map.set(child.id, {index: i - 1, name: child.name});
+                        let name;
+                        if(child.name === "output") name = node.name
+                        else name = child.name;
+                        await map.set(child.id, {index: i - 1, name: name});
                     }
                     break;
             }
@@ -393,12 +399,10 @@ import nodeTypes from "../Data/NodeTypes.js";
                     let connectors = [];
                     for(const column of nodes[i].children){
 
-                        console.log("Current Column: " + JSON.stringify(column));
 
                         if( !column.edgesFrom || column.edgesFrom.length === 0) continue;
                         let connector = {}
                         let valueSources = [null, null]
-
 
                         for(const edge of column.edgesFrom){
                             let source = {}
@@ -408,7 +412,8 @@ import nodeTypes from "../Data/NodeTypes.js";
                             source.index = await map.get(edge.id).index;
                             source.sourceName = await map.get(edge.id).name;
                             connector.type = edge.type;
-                            switch(edge.type){
+                            console.log(`Edge Type: ${edge.type}`);
+                            switch(edge.type) {
                                 case (sourceTypes.FIND): {
                                     valueSources[0] = source;
                                     connector.operator = ApiTypes[edge.operator];
@@ -416,6 +421,11 @@ import nodeTypes from "../Data/NodeTypes.js";
                                 }
 
                                 case (sourceTypes.UPDATE): {
+                                    valueSources[1] = source;
+                                    break;
+                                }
+
+                                case (sourceTypes.INSERT): {
                                     valueSources[1] = source;
                                     break;
                                 }
@@ -435,10 +445,12 @@ import nodeTypes from "../Data/NodeTypes.js";
                     }
 
 
-                    console.log("current node: " + JSON.stringify(nodes[i].configuration));
+                    const nodeQueryType =
+
                     queries[i - 2].inputConnectors = connectors;
-                    queries[i - 2].findOne = (nodes[i].configuration.queryType === InputConnectorTypes.FIND_ONE ||
-                        nodes[i].configuration.queryType === InputConnectorTypes.FIND_UPDATE)
+                    queries[i - 2].type = nodes[i].configuration.queryType;
+                    queries[i - 2].findOne = nodes[i].configuration.queryType === InputConnectorTypes.FIND_ONE
+
                     break;
 
 
@@ -458,15 +470,35 @@ import nodeTypes from "../Data/NodeTypes.js";
             error += "Response Instance type not correct\n"
         }
 
+        console.log(`************* Output Map ************** `)
+        printMap(map)
+        console.log(`*************************************** `)
+
+        console.log(`Response Node: ${JSON.stringify(responseNode.children)}`)
+
         for (const param of responseNode.children) {
+
+
             let resParam = {}
             resParam.name = param.name;
             resParam.type = param.type;
-            resParam.index = map.get(param.edgesFrom[0].id).index;
-            resParam.sourceName = map.get(param.edgesFrom[0].id).name;
+
+            const sourceEdge = param.edgesFrom[param.edgesFrom.length - 1];
+
+            if(sourceEdge) {
+
+                resParam.index = map.get(sourceEdge.id).index ?? 0;
+                resParam.sourceName = map.get(sourceEdge.id).name ?? ""; // Get the most updated Edge, should be 0 since there should only be 1 edge
+                // TODO fix the above, once frontend edges deletion when changing nodeType is implemented
+            }
+
+            console.log(`sourceName: ${resParam.sourceName}`)
 
             responseParams.push(resParam);
+
         }
+
+        console.log(`ResponseParams: ${JSON.stringify(responseParams)}`)
 
         console.log("valid: " + valid + ", " + error)
         if(valid) {
@@ -481,6 +513,14 @@ import nodeTypes from "../Data/NodeTypes.js";
         }
 
         return {valid: valid, error: error};
+    }
+
+    const printMap = (map) => {
+        const keys = Array.from(map.keys()); // Convert keys to an array
+        for (const key of keys) {
+            const value = map.get(key);
+            console.log(`Key: ${key}, Value: ${JSON.stringify(value)}`);
+        }
     }
 
 // Make sure to export the function
