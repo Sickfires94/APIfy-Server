@@ -30,7 +30,6 @@ const inputConnector = new Schema({
     valueSources: [Source], // Number is the index to the input query, array to separate find and update cases
     column: String,
     operator: {type: String, enum:Object.values(ApiOperators), default: "$eq"},
-    type: { type: String, enum: Object.values(InputConnectorTypes)},
 })
 
 

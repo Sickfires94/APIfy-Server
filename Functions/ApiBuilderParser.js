@@ -1,16 +1,15 @@
 import ApiConfig from "../models/ApiConfig.js"; // Adjust path if needed
-import ApiBuilder from "../models/Node.js"; // Adjust path if needed
+import ApiConfigs from "../models/ApiConfig.js";
 import InputConnectorTypes from "../Data/InputConnectorTypes.js"; // Adjust path if needed
 import mongoose from "mongoose";
 import NodeTypes from "../Data/NodeTypes.js";
+import nodeTypes from "../Data/NodeTypes.js";
 import Models from "../models/Model.js";
 import sourceTypes from "../Data/sourceTypes.js";
-import {query} from "express";
-import ApiConfigs from "../models/ApiConfig.js";
 import QueryTypes from "../Data/QueryTypes.js";
-import {transformOperators} from "./Helper Functions/TransformOperators.js";
 import ApiTypes from "../Data/ApiTypes.js";
-import nodeTypes from "../Data/NodeTypes.js";
+import FunctionTypes from "../Data/FunctionTypes.js";
+import NodeFunctionNames from "../Data/FunctionTypes.js";
 
 // Helper function to find a node by its ID within the nodes array
     const findNodeById = (nodes, id) => nodes.find(n => n.id === id);
@@ -350,19 +349,19 @@ import nodeTypes from "../Data/NodeTypes.js";
 
 
 
-        // Generate initial queries
+        // Generate initial queries (only populate models and output Columns)
         let queries = []
 
         for(let i = 2; i < nodes.length; i++){
             let query = {}
             let node = nodes[i]
+            query.outputColumns = []
 
             switch (node.nodeType) {
                 case NodeTypes.TABLE_NODE:
                     console.log("Found Table node")
                     const model = await Models.findOne({project: api.project, name: node.name})
                     query.model = model._id;
-                    query.outputColumns = [];
 
 
                     console.log(`${node.name} : ${node.configuration.queryType}`);
@@ -380,83 +379,96 @@ import nodeTypes from "../Data/NodeTypes.js";
                     }
 
                     console.log(`${node.name} outputs : ${query.outputColumns}`);
-
-                    console.log("Mapping Children")
-                    for (const child of node.children) {
-                        let name;
-                        if(child.name === "output") name = node.name
-                        else name = child.name;
-                        await map.set(child.id, {index: i - 1, name: name});
-                    }
                     break;
+
+                case NodeTypes.FUNCTION_NODE_DIAMOND:
+                    console.log(`Diamond Node: ${JSON.stringify(node)}`)
+                    query.outputColumns.push("output")
+                    break;
+
+                case NodeTypes.FUNCTION_NODE_TABLE:
+                    for(let i = 1; i < node.children.length; i++){ // Start from 1 to account for the input child at index 0
+                        query.outputColumns.push(node.children[i].name)
+                }
+
             }
+
+
+            // The Following is not optimal but easier to work with in case of different node types
+
+            // Mapping Node Children for future reference
+            for (const child of node.children) {
+                await map.set(child.id, {index: i - 1, name: child.name});
+            }
+
+            // Mapping Node name for possible reference
+            await map.set(node.id, {index: i - 1, name: node.name});
+
             queries.push(query);
         }
 
+        // Print Created Maps
+        // Only Leave Uncommented when debugging
+        printMap(map)
+
         for(let i = 2; i < nodes.length; i++){
-            switch(nodes[i].nodeType) {
-                case NodeTypes.TABLE_NODE:
-                    let connectors = [];
-                    for(const column of nodes[i].children){
+            let connectors = [];
+            for(const column of nodes[i].children){
 
+                if( !column.edgesFrom || column.edgesFrom.length === 0) continue;
+                let connector = {}
+                let valueSources = [null, null]
 
-                        if( !column.edgesFrom || column.edgesFrom.length === 0) continue;
-                        let connector = {}
-                        let valueSources = [null, null]
-
-                        for(const edge of column.edgesFrom){
-                            let source = {}
-                            source.name = column.name;
-                            // source.type = column.type;
-                            console.log(edge.id)
-                            source.index = await map.get(edge.id).index;
-                            source.sourceName = await map.get(edge.id).name;
-                            connector.type = edge.type;
-                            console.log(`Edge Type: ${edge.type}`);
-                            switch(edge.type) {
-                                case (sourceTypes.FIND): {
-                                    valueSources[0] = source;
-                                    connector.operator = ApiTypes[edge.operator];
-                                    break;
-                                }
-
-                                case (sourceTypes.UPDATE): {
-                                    valueSources[1] = source;
-                                    break;
-                                }
-
-                                case (sourceTypes.INSERT): {
-                                    valueSources[1] = source;
-                                    break;
-                                }
-
-                                default: {
-                                    valid = false;
-                                    error += "edge type invalid\n"
-                                }
-                            }
+                for(const edge of column.edgesFrom){
+                    let source = {}
+                    source.name = column.name;
+                    // source.type = column.type;
+                    console.log(edge.id)
+                    source.index = await map.get(edge.id).index;
+                    source.sourceName = await map.get(edge.id).name;
+                    console.log(`Edge Type: ${edge.type}`);
+                    switch(edge.type) {
+                        case (sourceTypes.FIND): case (sourceTypes.INPUT): {
+                            valueSources[0] = source;
+                            connector.operator = ApiTypes[edge.operator];
+                            break;
                         }
 
-                        connector.valueSources = valueSources;
-                        connector.column = column.name;
+                        case (sourceTypes.UPDATE): case (sourceTypes.INSERT): {
+                            valueSources[1] = source;
+                            break;
+                        }
 
+                        default: {
+                            valid = false;
+                            error += `edge type invalid: ${edge.type} \n`
 
-                        connectors.push(connector);
+                        }
                     }
+                }
+
+                connector.valueSources = valueSources;
+                connector.column = column.name;
 
 
-                    const nodeQueryType =
-
-                    queries[i - 2].inputConnectors = connectors;
-                    queries[i - 2].type = nodes[i].configuration.queryType;
-                    queries[i - 2].findOne = nodes[i].configuration.queryType === InputConnectorTypes.FIND_ONE
-
-                    break;
-
-
-
+                connectors.push(connector);
             }
 
+
+            queries[i - 2].inputConnectors = connectors;
+            switch (nodes[i].nodeType){
+                case(NodeTypes.TABLE_NODE):
+                    queries[i - 2].type = nodes[i].configuration.queryType;
+                    break;
+                case(NodeTypes.FUNCTION_NODE_TABLE): case(NodeTypes.FUNCTION_NODE_DIAMOND):
+                    queries[i - 2].type = QueryTypes[getEnumKeyByValue(NodeFunctionNames,nodes[i].name)];
+                    break;
+                default:
+                    console.log(`Invalid Node Type for ${nodes[i].name} : ${nodes[i].nodeType}`)
+
+            }
+            // Enable and modify the following line if findOne is not just 1 queryType
+            // queries[i - 2].findOne = nodes[i].configuration.queryType === InputConnectorTypes.FIND_ONE
         }
 
 
@@ -484,16 +496,15 @@ import nodeTypes from "../Data/NodeTypes.js";
             resParam.type = param.type;
 
             const sourceEdge = param.edgesFrom[param.edgesFrom.length - 1];
+            console.log(`Source Edge: ${JSON.stringify(sourceEdge)}`);
 
             if(sourceEdge) {
-
                 resParam.index = map.get(sourceEdge.id).index ?? 0;
                 resParam.sourceName = map.get(sourceEdge.id).name ?? ""; // Get the most updated Edge, should be 0 since there should only be 1 edge
                 // TODO fix the above, once frontend edges deletion when changing nodeType is implemented
             }
 
             console.log(`sourceName: ${resParam.sourceName}`)
-
             responseParams.push(resParam);
 
         }
@@ -522,6 +533,10 @@ import nodeTypes from "../Data/NodeTypes.js";
             console.log(`Key: ${key}, Value: ${JSON.stringify(value)}`);
         }
     }
+
+function getEnumKeyByValue(Enum, value) {
+    return Object.keys(Enum).find(key => Enum[key] === value);
+}
 
 // Make sure to export the function
  export default ApiBuilderParser2;

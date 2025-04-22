@@ -1,6 +1,6 @@
 import ApiConfigs from "../models/ApiConfig.js";
 import apiConfig from "../models/ApiConfig.js";
-import {runQuery, runQuery2} from "../Functions/runQuery.js";
+import { runQuery2} from "../Functions/runQuery.js";
 
 const runApi2 = async (req, res) => {
     /*
@@ -22,12 +22,12 @@ const runApi2 = async (req, res) => {
     console.log("Entered flow")
     // Combine body, query, and potentially params as initial inputs
     const requestInputs = { ...req.body, ...req.query, ...req.params }; // Using all potential input sources
+    const TESTING_FLAG = requestInputs["TestingFlag"] ?? false;
 
     const api = await ApiConfigs.findOne({name: name, project: project}).lean()
     if(!api) return res.status(404).json({"error": "Api Not Found"})
 
     let outputs = new Array(api.queries.length + 1).fill(null);
-
     outputs[0] = {}  // To initialize request Params
 
     try{
@@ -49,7 +49,7 @@ const runApi2 = async (req, res) => {
         for(let i = 0; i < api.queries.length; i++){
             if(outputs[i + outputsOffset] !== null) continue; // +1 to account for request Params at index 0
 
-            outputs[i + outputsOffset] = await runQuery2(api.queries[i], outputs);
+            outputs[i + outputsOffset] = await runQuery2(api.queries[i], outputs, TESTING_FLAG);
             if(outputs[i + outputsOffset] !== null) {
                 madeProgress = true
                 console.log("Marking Progress")
@@ -67,7 +67,6 @@ const runApi2 = async (req, res) => {
     // Build the response
     for(const param of api.responseParams) {
         if(outputs[param.index] === null) return res.status(500).json({"error": "API did not function completely"}).end()
-
         response[param.name] = outputs[param.index][param.sourceName]
     }
 
