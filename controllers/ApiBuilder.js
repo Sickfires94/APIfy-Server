@@ -12,7 +12,7 @@ const saveBuilderState = async (req, res) => {
     const {apiConfigId} = req.params;
 
 
-    if(!checkParamsExist(res, {nodes})) return;
+    if(!checkParamsExist(res, [nodes])) return;
     let saved_state = await ApiBuilder.findOne({apiConfig: apiConfigId});
 
     if(!saved_state){

@@ -303,16 +303,13 @@ import NodeFunctionNames from "../Data/FunctionTypes.js";
         1.convert the "table" (node/nodetype) nodes into an array of queries
             1.1. only have models and outputColumns initially
         2. go through the edges in each node and generate input connectors
-            2.1. for offsets, use relative locations in the queries array
+            2.1. for input index, use locations in the queries array + 1
         3. map request and response params to the correct params (again use nodeType)
         4. save the config
 
     if successful, set builderschema.valid == true
 
      */
-
-
-
 
         let valid = true;
         let error = ""
@@ -377,12 +374,9 @@ import NodeFunctionNames from "../Data/FunctionTypes.js";
                             query.outputColumns.push(node.name);
                             break;
                     }
-
-                    console.log(`${node.name} outputs : ${query.outputColumns}`);
                     break;
 
                 case NodeTypes.FUNCTION_NODE_DIAMOND:
-                    console.log(`Diamond Node: ${JSON.stringify(node)}`)
                     query.outputColumns.push("output")
                     break;
 
@@ -409,7 +403,7 @@ import NodeFunctionNames from "../Data/FunctionTypes.js";
 
         // Print Created Maps
         // Only Leave Uncommented when debugging
-        printMap(map)
+        // printMap(map)
 
         for(let i = 2; i < nodes.length; i++){
             let connectors = [];
@@ -423,10 +417,8 @@ import NodeFunctionNames from "../Data/FunctionTypes.js";
                     let source = {}
                     source.name = column.name;
                     // source.type = column.type;
-                    console.log(edge.id)
                     source.index = await map.get(edge.id).index;
                     source.sourceName = await map.get(edge.id).name;
-                    console.log(`Edge Type: ${edge.type}`);
                     switch(edge.type) {
                         case (sourceTypes.FIND): case (sourceTypes.INPUT): {
                             valueSources[0] = source;
@@ -482,12 +474,6 @@ import NodeFunctionNames from "../Data/FunctionTypes.js";
             error += "Response Instance type not correct\n"
         }
 
-        console.log(`************* Output Map ************** `)
-        printMap(map)
-        console.log(`*************************************** `)
-
-        console.log(`Response Node: ${JSON.stringify(responseNode.children)}`)
-
         for (const param of responseNode.children) {
 
 
@@ -496,20 +482,15 @@ import NodeFunctionNames from "../Data/FunctionTypes.js";
             resParam.type = param.type;
 
             const sourceEdge = param.edgesFrom[param.edgesFrom.length - 1];
-            console.log(`Source Edge: ${JSON.stringify(sourceEdge)}`);
 
             if(sourceEdge) {
                 resParam.index = map.get(sourceEdge.id).index ?? 0;
                 resParam.sourceName = map.get(sourceEdge.id).name ?? ""; // Get the most updated Edge, should be 0 since there should only be 1 edge
                 // TODO fix the above, once frontend edges deletion when changing nodeType is implemented
             }
-
-            console.log(`sourceName: ${resParam.sourceName}`)
             responseParams.push(resParam);
 
         }
-
-        console.log(`ResponseParams: ${JSON.stringify(responseParams)}`)
 
         console.log("valid: " + valid + ", " + error)
         if(valid) {
