@@ -183,24 +183,28 @@ const runQuery2 = async (Query, outputs, TESTING_FLAG) => {
     let output = null
 
     if(Query.model) { // If Query has model, it wants to perform a crud operation
-        output = CRUDQueryFlow(Query, TESTING_FLAG)
+        output = CRUDQueryFlow(Query, outputs, TESTING_FLAG)
         return output;
     }
 
+    console.log("Entering Other Flows")
+
     switch (Query.type){
         case (QueryTypes.HASH):
-            output = hashFlow(Query, outputs)
+            output = await hashFlow(Query, outputs)
             break;
         case (QueryTypes.TOKEN_PARSE):
-            output = TokenParseFlow(Query, outputs)
+            output = await TokenParseFlow(Query, outputs)
             break;
         case (QueryTypes.TOKEN_GENERATE):
-            output = TokenGenerateFlow(Query, outputs)
+            output = await TokenGenerateFlow(Query, outputs)
             break;
         default:
             console.log(`Query type ${Query.type} not implemented.`);
 
     }
+
+    // console.log(`Outputs: ${JSON.stringify(outputs)}`);
 
     return output;
 
@@ -211,7 +215,7 @@ const addToQuery = (source, operationQuery, outputs) => {
     if(operationQuery === null) operationQuery = {};
     operationQuery[source.name] = outputs[source.index][source.sourceName];
 
-    console.log("Adding query: " + operationQuery[source.name]);
+    // console.log("Adding query: " + operationQuery[source.name]);
 
     return operationQuery;
 }

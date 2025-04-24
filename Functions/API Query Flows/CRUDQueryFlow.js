@@ -29,9 +29,9 @@ const CrudQueryFlow = async (Query, outputs, TESTING_FLAG) => {
         if(connector.valueSources[1]) updateQuery = addToQuery(connector.valueSources[1], updateQuery, outputs);
     }
 
-    console.log("Find Query: " + JSON.stringify(findQuery));
-    console.log("Update Query: " + JSON.stringify(updateQuery));
-    console.log("Find One: " + findOne)
+    // console.log("Find Query: " + JSON.stringify(findQuery));
+    // console.log("Update Query: " + JSON.stringify(updateQuery));
+    // console.log("Find One: " + findOne)
 
 
     if(findOne) {
@@ -69,9 +69,11 @@ const CrudQueryFlow = async (Query, outputs, TESTING_FLAG) => {
 
 const addToQuery = (source, operationQuery, outputs) => {
     if(operationQuery === null) operationQuery = {};
+    // console.log(`sourceIndex: ${source.index} - sourceName: ${source.sourceName}`);
+    // console.log("Outputs in CRUD: " + JSON.stringify(outputs));
     operationQuery[source.name] = outputs[source.index][source.sourceName];
 
-    console.log("Adding query: " + operationQuery[source.name]);
+    // console.log("Adding query: " + operationQuery[source.name]);
 
     return operationQuery;
 }

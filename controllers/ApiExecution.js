@@ -53,7 +53,7 @@ const runApi2 = async (req, res) => {
             if(outputs[i + outputsOffset] !== null) {
                 madeProgress = true
                 console.log("Marking Progress")
-            };
+            }
         }
 
         console.log("Made Progress: " + madeProgress);
@@ -66,7 +66,7 @@ const runApi2 = async (req, res) => {
 
     // Build the response
     for(const param of api.responseParams) {
-        if(outputs[param.index] === null) return res.status(500).json({"error": "API did not function completely"}).end()
+        if(outputs[param.index] === null || outputs[param.index] === undefined) return res.status(500).json({"error": "API did not function completely"}).end()
         response[param.name] = outputs[param.index][param.sourceName]
     }
 

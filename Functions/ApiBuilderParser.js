@@ -403,47 +403,88 @@ import NodeFunctionNames from "../Data/FunctionTypes.js";
 
         // Print Created Maps
         // Only Leave Uncommented when debugging
-        // printMap(map)
+        printMap(map)
 
         for(let i = 2; i < nodes.length; i++){
             let connectors = [];
-            for(const column of nodes[i].children){
+            switch(nodes[i].nodeType){
 
-                if( !column.edgesFrom || column.edgesFrom.length === 0) continue;
-                let connector = {}
-                let valueSources = [null, null]
 
-                for(const edge of column.edgesFrom){
-                    let source = {}
-                    source.name = column.name;
-                    // source.type = column.type;
-                    source.index = await map.get(edge.id).index;
-                    source.sourceName = await map.get(edge.id).name;
-                    switch(edge.type) {
-                        case (sourceTypes.FIND): case (sourceTypes.INPUT): {
-                            valueSources[0] = source;
-                            connector.operator = ApiTypes[edge.operator];
-                            break;
+                // Nodes where Edges are connected to children
+                case(NodeTypes.TABLE_NODE): case(NodeTypes.FUNCTION_NODE_TABLE): {
+                    for (const column of nodes[i].children) {
+                        if (!column.edgesFrom || column.edgesFrom.length === 0) continue;
+                        let connector = {}
+                        let valueSources = [null, null]
+
+                        for (const edge of column.edgesFrom) {
+                            let source = {}
+                            source.name = column.name;
+                            // source.type = column.type;
+                            source.index = await map.get(edge.id).index;
+                            source.sourceName = await map.get(edge.id).name;
+                            switch (edge.type) {
+                                case (sourceTypes.FIND):
+                                case (sourceTypes.INPUT): {
+                                    valueSources[0] = source;
+                                    connector.operator = ApiTypes[edge.operator];
+                                    break;
+                                }
+
+                                case (sourceTypes.UPDATE):
+                                case (sourceTypes.INSERT): {
+                                    valueSources[1] = source;
+                                    break;
+                                }
+
+                                default: {
+                                    valid = false;
+                                    error += `edge type invalid: ${edge.type} \n`
+
+                                }
+                            }
                         }
 
-                        case (sourceTypes.UPDATE): case (sourceTypes.INSERT): {
-                            valueSources[1] = source;
-                            break;
-                        }
 
-                        default: {
-                            valid = false;
-                            error += `edge type invalid: ${edge.type} \n`
-
-                        }
+                        connector.valueSources = valueSources;
+                        connector.column = column.name;
+                        connectors.push(connector);
                     }
+                    break;
                 }
 
-                connector.valueSources = valueSources;
-                connector.column = column.name;
 
+                // Nodes where edges are connected to the node itself
+                case(NodeTypes.FUNCTION_NODE_DIAMOND): {
 
-                connectors.push(connector);
+                    for (const edge of nodes[i].edgesFrom) {
+
+                        let connector = {}
+                        let valueSources = [null, null]
+
+                        console.log(`Edge: ${JSON.stringify(edge)}`)
+
+                        let source = {}
+                        source.name = await map.get(edge.id).name;
+                        connector.name = source.name;
+                        // source.type = column.type;
+                        source.index = await map.get(edge.id).index;
+                        source.sourceName = await map.get(edge.id).name;
+                        valueSources[0] = source;
+                        connector.operator = ApiTypes[edge.operator];
+                        connector.valueSources = valueSources;
+
+                        console.log(`Connector Created: ${JSON.stringify(connector)}`)
+
+                        connectors.push(connector);
+                    }
+                    break;
+                }
+
+                default: {
+                    console.log("Node Type not implemented yet")
+                }
+
             }
 
 
@@ -476,6 +517,7 @@ import NodeFunctionNames from "../Data/FunctionTypes.js";
 
         for (const param of responseNode.children) {
 
+            if(param.edgesFrom.length === 0) continue;
 
             let resParam = {}
             resParam.name = param.name;
