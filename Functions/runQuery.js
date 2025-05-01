@@ -170,15 +170,13 @@ const runQuery = async (Query, outputs, TESTING_FLAG) => {
 
     // Check if query should be blocked by if conditions
 
-    if(Query.type === QueryTypes.IF){
-        console.log("**************************")
-    }
 
     if(Query.conditionConnectors.length > 0){
         for (const connector of Query.conditionConnectors){
             const source = connector.valueSources[0]
 
             if(!outputs[source.index] || !outputs[source.index][source.sourceName]){
+                console.log(`Skipping Query: ${JSON.stringify(Query)}`);
                 return null;
             }
         }

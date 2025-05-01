@@ -81,6 +81,7 @@ const CrudQueryFlow = async (Query, outputs, TESTING_FLAG) => {
 
         }
     }
+    console.log(`Inserted: ${output["output"]}`);
     return output
 }
 

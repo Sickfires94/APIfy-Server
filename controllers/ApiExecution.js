@@ -77,16 +77,30 @@ const runApi2 = async (req, res) => {
             for (const connector of response.conditionConnectors){
                 const source = connector.valueSources[0]
                 if(!outputs[source.index] || !outputs[source.index][source.sourceName]){
+                    console.log("Reached here!!!")
                     responseValid = false;
                     break;
                 }
             }
+            if(responseValid) responseIndex = i;
         }
-        if(responseValid) responseIndex = i;
+        if(!responseValid) continue;
+
+        for(const param of response.params){
+            if(!outputs[param.index] || !outputs[param.index][param.sourceName]){
+                responseValid = false;
+            }
+        }
+        if(responseValid){
+            responseIndex = i;
+            break;
+        }
+
     }
 
     if(responseIndex === -1) return res.status(500).json({"error": "API did not function completely"}).end()
 
+    console.log(`Response index: ${responseIndex}`)
     console.log(`Returning response: ${JSON.stringify(api.responses[responseIndex])}`);
 
     // // Build the response
