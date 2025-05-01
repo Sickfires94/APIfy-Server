@@ -61,7 +61,11 @@ const createAPI = async (req, res) => {
                     type: 'response',
                     nodeType: 'responseNode',
                     edges: [],
-                    children: []
+                    children: [],
+                    configuration: {
+                        httpCode: 200,
+                        message: 'success'
+                    }
                 }
 
             ],
