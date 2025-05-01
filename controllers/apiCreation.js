@@ -25,7 +25,7 @@ const createAPI = async (req, res) => {
     const { name, project, model, type, searchParams = [], setParams = [], responseParams = [] } = req.body;
 
     // Check required parameters
-    checkParamsExist(res, [name, project, model, type]);
+    checkParamsExist(res, [name, project, type]);
 
     // Validate array parameters
     if (!Array.isArray(searchParams)) {
