@@ -7,7 +7,8 @@ import CRUD_Query_Flow from "./API Query Flows/CRUDQueryFlow.js";
 import CRUDQueryFlow from "./API Query Flows/CRUDQueryFlow.js";
 import hashFlow from "./API Query Flows/HashFlow.js";
 import TokenGenerateFlow from "./API Query Flows/TokenGenerateFlow.js";
-import TokenParseFlow from "./API Query Flows/TokenParseFlow.js"; // Ensure this path is correct
+import TokenParseFlow from "./API Query Flows/TokenParseFlow.js";
+import IfConditionFlow from "./API Query Flows/IfConditionFlow.js"; // Ensure this path is correct
 
 //
 // const runQuery = async (Query, outputs, TESTING_FLAG) => {
@@ -166,6 +167,18 @@ const runQuery = async (Query, outputs, TESTING_FLAG) => {
 4. await the query and return it
 */
 
+    // Check if query should be blocked by if conditions
+
+    if(Query.conditionConnectors.length > 0){
+        for (const connector of Query.conditionConnectors){
+            const source = connector.valueSources[0]
+
+            if(!outputs[source.index] || !outputs[source.index][source.sourceName]){
+                return null;
+            }
+        }
+    }
+
     // Check if all dependencies are fulfilled
     for (const connector of Query.inputConnectors) {
         for (const source of connector.valueSources) {
@@ -183,12 +196,9 @@ const runQuery = async (Query, outputs, TESTING_FLAG) => {
     let output = null
 
     if(Query.model) { // If Query has model, it wants to perform a crud operation
-        console.log("Entered Crud flow")
         output = CRUDQueryFlow(Query, outputs, TESTING_FLAG)
         return output;
     }
-
-    console.log("Entering Other Flows")
 
     switch (Query.type){
         case (QueryTypes.HASH):
@@ -200,9 +210,9 @@ const runQuery = async (Query, outputs, TESTING_FLAG) => {
         case (QueryTypes.TOKEN_GENERATE):
             output = await TokenGenerateFlow(Query, outputs)
             break;
-        default:
-            console.log(`Query type ${Query.type} not implemented.`);
-
+        case (QueryTypes.IF):
+            output = await IfConditionFlow(Query, outputs)
+            break;
     }
 
     // console.log(`Outputs: ${JSON.stringify(outputs)}`);

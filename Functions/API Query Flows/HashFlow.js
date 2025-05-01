@@ -1,9 +1,6 @@
 import {hash} from "bcrypt";
 
 const HashFlow = async (Query, outputs) => {
-
-    console.log("Entered Hash flow")
-
     if(Query.inputConnectors.length === 0) return null
 
     let output = {}

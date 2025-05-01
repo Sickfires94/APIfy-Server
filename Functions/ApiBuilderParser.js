@@ -325,6 +325,7 @@ import ApiOperators from "../Data/ApiOperators.js";
         // Initialize map to map edges for fast indexing
         let map = new Map();
 
+
         // Get Request Node
         let requestParams = []
         let requestNode = nodes[0]
@@ -350,11 +351,12 @@ import ApiOperators from "../Data/ApiOperators.js";
 
         // Generate initial queries (only populate models and output Columns)
         let queries = []
+        let offset = 1;
 
         // Initialize list to dump all possible Responses into
         let responses = [];
 
-        for(let i = 1; i < nodes.length; i++){
+        for(let i = offset; i < nodes.length; i++){
             let query = {}
             let node = nodes[i]
             query.outputColumns = []
@@ -398,11 +400,11 @@ import ApiOperators from "../Data/ApiOperators.js";
             // The Following is not optimal but easier to work with in case of different node types
             // Mapping Node Children for future reference
             for (const child of node.children) {
-                await map.set(child.id, {index: i - 1, name: child.name});
+                await map.set(child.id, {index: i, name: child.name});
             }
 
             // Mapping Node name for possible reference
-            await map.set(node.id, {index: i - 1, name: node.name});
+            await map.set(node.id, {index: i, name: node.name});
 
             queries.push(query);
         }
@@ -411,7 +413,6 @@ import ApiOperators from "../Data/ApiOperators.js";
         // Only Leave Uncommented when debugging
         printMap(map)
 
-        let offset = 1;
 
         for(let i = offset; i < nodes.length; i++){
             let connectors = [];
@@ -449,11 +450,11 @@ import ApiOperators from "../Data/ApiOperators.js";
                         console.log(`Response child: ${JSON.stringify(child)}`);
 
                         const edge = await map.get(child.edgesFrom[0].id)
-
+                        console.log("****************************************")
                         console.log(`Edge: ${JSON.stringify(edge)}`);
                         source.name = child.name;
                         source.index = edge.index;
-                        source.sourceName = edge.sourceName;
+                        source.sourceName = edge.name;
                         source.type = child.type;
 
                         response.params.push(source)
@@ -499,9 +500,12 @@ import ApiOperators from "../Data/ApiOperators.js";
                         }
                         else {
                             queries[i - offset].constant = nodes[i].children[1].value
-                            connector.operator = ApiOperators[nodes[i].comparision];
                         }
 
+
+                        connector.operator = ApiOperators[nodes[i].comparision.toUpperCase()];
+                        console.log(`Connector: ${JSON.stringify(connector)}`);
+                        console.log(`Connector-Operator: ${nodes[i].comparision}`);
                         connectors.push(connector);
                     }
                     break;
@@ -608,6 +612,9 @@ import ApiOperators from "../Data/ApiOperators.js";
                     break;
                 case(NodeTypes.FUNCTION_NODE_TABLE): case(NodeTypes.FUNCTION_NODE_DIAMOND):
                     queries[i - offset].type = QueryTypes[getEnumKeyByValue(NodeFunctionNames,nodes[i].name)];
+                    break;
+                case(NodeTypes.LOGIC_NODE):
+                    queries[i - offset].type = QueryTypes.IF;
                     break;
                 default:
                     console.log(`Invalid Node Type for ${nodes[i].name} : ${nodes[i].nodeType}`)

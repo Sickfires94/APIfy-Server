@@ -64,8 +64,33 @@ const runApi2 = async (req, res) => {
 
     console.log("Final Outputs: " + JSON.stringify(outputs));
 
-    // Build the response
-    for(const param of api.responseParams) {
+
+    // keep track of which response to send
+    let responseIndex = -1;
+
+    for (let i = 0; i < api.responses.length; i++){
+        let responseValid = true;
+
+        const response = api.responses[i];
+
+        if(response.conditionConnectors.length > 0){
+            for (const connector of response.conditionConnectors){
+                const source = connector.valueSources[0]
+                if(!outputs[source.index][source.sourceName]){
+                    responseValid = false;
+                    break;
+                }
+            }
+        }
+        if(responseValid) responseIndex = i;
+    }
+
+    if(responseIndex === -1) return res.status(500).json({"error": "API did not function completely"}).end()
+
+    console.log(`Returning response: ${JSON.stringify(api.responses[responseIndex])}`);
+
+    // // Build the response
+    for(const param of api.responses[responseIndex].params) {
         if(outputs[param.index] === null || outputs[param.index] === undefined) return res.status(500).json({"error": "API did not function completely"}).end()
         response[param.name] = outputs[param.index][param.sourceName]
     }

@@ -10,6 +10,7 @@ const QueryTypes = Object.freeze({
     TOKEN_PARSE: 'tokenParse',
     TOKEN_GENERATE: 'tokenGenerate',
     HASH: 'hash',
+    IF: 'if'
 });
 
 export default QueryTypes
