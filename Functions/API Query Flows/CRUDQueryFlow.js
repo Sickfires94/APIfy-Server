@@ -66,10 +66,10 @@ const CrudQueryFlow = async (Query, outputs, TESTING_FLAG) => {
 
         case (QueryTypes.INSERT):
             console.log("************ Running Insert **********************")
-            if(TESTING_FLAG) {
-                output["output"] = updateQuery;
-                return output;
-            }
+            // if(TESTING_FLAG) {
+            //     output["output"] = updateQuery;
+            //     return output;
+            // }
             if(updateQuery !== null){
                 output["output"] = new model(updateQuery);
                 try{
