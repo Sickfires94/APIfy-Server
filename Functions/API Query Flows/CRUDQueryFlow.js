@@ -59,6 +59,10 @@ const CrudQueryFlow = async (Query, outputs, TESTING_FLAG) => {
             break;
 
         case (QueryTypes.INSERT):
+            if(TESTING_FLAG) {
+                output["output"] = updateQuery;
+                return output;
+            }
             if(updateQuery !== null){
                 output["output"] = new model(updateQuery);
                 try{
@@ -67,6 +71,7 @@ const CrudQueryFlow = async (Query, outputs, TESTING_FLAG) => {
                 catch (e) {
                     output["output"] = e;
                 }
+
         }
     }
     return output
