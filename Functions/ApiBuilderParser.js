@@ -459,9 +459,11 @@ import ApiOperators from "../Data/ApiOperators.js";
 
                         response.params.push(source)
                     }
-                    console.log(`Response: ${JSON.stringify(response)}`);
+
+                    response.message = nodes[i].configuration.message;
+                    response.httpCode = nodes[i].configuration.node;
+
                     responses.push(response);
-                    console.log(`Responses List: ${JSON.stringify(responses)}`);
                  break;
                 }
 

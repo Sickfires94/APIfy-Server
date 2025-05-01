@@ -36,6 +36,8 @@ const inputConnector = new Schema({
 
 const Response = new Schema({
     conditionConnectors: [inputConnector],
+    message: String,
+    httpCode: Number,
     params: [Source]
 })
 

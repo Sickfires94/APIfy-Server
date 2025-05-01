@@ -95,7 +95,10 @@ const runApi2 = async (req, res) => {
         response[param.name] = outputs[param.index][param.sourceName]
     }
 
-    return res.status(200).json(response).end()
+    let message = api.responses[responseIndex].message;
+    let httpCode = api.responses[responseIndex].httpCode;
+
+    return res.status(httpCode).json({message: message, data: response}).end()
 
 }
 
