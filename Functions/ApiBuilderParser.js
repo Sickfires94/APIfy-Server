@@ -461,7 +461,7 @@ import ApiOperators from "../Data/ApiOperators.js";
                     }
 
                     response.message = nodes[i].configuration.message;
-                    response.httpCode = nodes[i].configuration.node;
+                    response.httpCode = nodes[i].configuration.httpCode;
 
                     responses.push(response);
                  break;
