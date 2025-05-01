@@ -19,7 +19,7 @@ const CrudQueryFlow = async (Query, outputs, TESTING_FLAG) => {
     let findQuery = null;
     let updateQuery = null;
 
-    // MODIFY if updateOne or DeleteOne is implemented seperately
+    // MODIFY if updateOne or DeleteOne is implemented separately
     let findOne = (Query.type === QueryTypes.FIND_ONE); // Flag to determine if findOne or find/updateMany should be used
     let output = null;
 
@@ -37,30 +37,35 @@ const CrudQueryFlow = async (Query, outputs, TESTING_FLAG) => {
     if(findOne) {
         if(updateQuery !== null) console.log("update result: " + JSON.stringify(await model.updateOne(findQuery, updateQuery)));
         output = await model.findOne(findQuery, {"_id": 0});
+        return output
     }
-    else {
-        output = {} // Make output an object instead of seperate fields
 
-        switch (Query.type){
-            case (QueryTypes.UPDATE):
-                if(updateQuery !== null)
-                    await model.updateMany(findQuery, updateQuery);
-                output[modelDef.name] = await model.find(findQuery, {"_id": 0});
-                break;
+    output = {} // Make output an object instead of seperate fields
+    if(Query.type !== QueryTypes.INSERT) output["output"] = await model.find(findQuery, {"_id": 0});
 
-            case (QueryTypes.DELETE):
-                if(findQuery !== null)
-                    output[modelDef.name] = await model.deleteMany(findQuery, {"_id": 0});
-                break;
+    switch (Query.type){
+        case (QueryTypes.UPDATE):
+            if(updateQuery !== null && !TESTING_FLAG)
+                await model.updateMany(findQuery, updateQuery);
+            break;
 
-            case (QueryTypes.FIND_ALL):
-                output[modelDef.name] = await model.find(findQuery, {"_id": 0});
-                break;
+        case (QueryTypes.DELETE):
+            if(findQuery !== null && !TESTING_FLAG)
+                await model.deleteMany(findQuery, {"_id": 0});
+            break;
 
-            case (QueryTypes.INSERT):
-                if(updateQuery !== null){
-                    output[modelDef.name] = new model(updateQuery);
-                    await output[modelDef.name].save();
+        case (QueryTypes.FIND_ALL):
+            await model.find(findQuery, {"_id": 0});
+            break;
+
+        case (QueryTypes.INSERT):
+            if(updateQuery !== null){
+                output["output"] = new model(updateQuery);
+                try{
+                    await output["output"].save();
+                }
+                catch (e) {
+                    output["output"] = e;
                 }
         }
     }

@@ -76,7 +76,7 @@ const runApi2 = async (req, res) => {
         if(response.conditionConnectors.length > 0){
             for (const connector of response.conditionConnectors){
                 const source = connector.valueSources[0]
-                if(!outputs[source.index][source.sourceName]){
+                if(!outputs[source.index] || !outputs[source.index][source.sourceName]){
                     responseValid = false;
                     break;
                 }

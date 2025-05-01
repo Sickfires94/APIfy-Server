@@ -468,9 +468,11 @@ import ApiOperators from "../Data/ApiOperators.js";
                 case(NodeTypes.LOGIC_NODE): {
                     // Input at index 0
                     {
+
                         let connector = {}
                         connector.valueSources = [null, null]
                         const edge = nodes[i].children[0].edgesFrom[0] // Get the "ONLY" edge from child 0
+                        if(!edge) continue;
                         let source = {}
                         source.name = await map.get(edge.id).name;
                         source.sourceName = source.name;
