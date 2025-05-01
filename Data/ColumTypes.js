@@ -6,6 +6,7 @@ const ColumTypes = Object.freeze({
     DATE: 'date',
     OBJECT: 'object',
     ENUM: 'enum',
+    TOKEN: 'token',
   });
   
 export default ColumTypes  

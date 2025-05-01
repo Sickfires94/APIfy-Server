@@ -1,5 +1,7 @@
 import {hash} from "bcrypt";
 
+import crypto from "crypto";
+
 const HashFlow = async (Query, outputs) => {
     if(Query.inputConnectors.length === 0) return null
 
@@ -7,11 +9,14 @@ const HashFlow = async (Query, outputs) => {
     let value = "";
 
     for(const connector of Query.inputConnectors) {
-        // Make a string of spaced values for easy debugging incase of multiple inputs
         value += outputs[connector.valueSources[0].index][connector.valueSources[0].index] + " "
     }
 
-    output.hash = await hash(value, 5);
+    const hash = crypto.createHash('sha256');
+    hash.update(value);
+    output.hash = hash.digest('hex');
+
+
     return output;
 
 }
