@@ -37,6 +37,12 @@ const CrudQueryFlow = async (Query, outputs, TESTING_FLAG) => {
     if(findOne) {
         if(updateQuery !== null) console.log("update result: " + JSON.stringify(await model.updateOne(findQuery, updateQuery)));
         output = await model.findOne(findQuery, {"_id": 0});
+        if(!output) {
+            output = {}
+            for (const colum of modelDef.colums) {
+                output[colum.columName] = null
+            }
+        }
         return output
     }
 
@@ -59,6 +65,7 @@ const CrudQueryFlow = async (Query, outputs, TESTING_FLAG) => {
             break;
 
         case (QueryTypes.INSERT):
+            console.log("************ Running Insert **********************")
             if(TESTING_FLAG) {
                 output["output"] = updateQuery;
                 return output;

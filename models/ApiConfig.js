@@ -4,6 +4,8 @@ import ApiOperators from "../Data/ApiOperators.js";
 import columTypes from "../Data/ColumTypes.js";
 import InputConnectorTypes from "../Data/InputConnectorTypes.js";
 import QueryTypes from "../Data/QueryTypes.js";
+import ColumTypes from "../Data/ColumTypes.js";
+import IfConditionDataTypes from "../Data/IfConditionDataTypes.js";
 
 const schema = Schema;
 
@@ -37,13 +39,17 @@ const Response = new Schema({
     params: [Source]
 })
 
+const Constant = new Schema({
+    type: {type: String, enum: Object.values(IfConditionDataTypes)},
+    value: Schema.Types.Mixed,
+})
 
 const Query = new Schema({
     model: {type: Schema.Types.ObjectId, ref: "Models"},
     findOne: Boolean,
     type: {type: String, enum: Object.values(QueryTypes)},
     conditionConnectors: [inputConnector],
-    constant: Schema.Types.Mixed,
+    constant: Constant,
     inputConnectors: [{type: inputConnector, required: false}], // have set/search params with origin
     outputColumns: [String]
 })

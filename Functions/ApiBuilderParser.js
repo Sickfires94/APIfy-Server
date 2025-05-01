@@ -501,7 +501,10 @@ import ApiOperators from "../Data/ApiOperators.js";
 
                         }
                         else {
-                            queries[i - offset].constant = nodes[i].children[1].value
+                            let constant = {}
+                            constant.value = nodes[i].children[1].value
+                            constant.type = nodes[i].children[1].type;
+                            queries[i - offset].constant = constant;
                         }
 
 

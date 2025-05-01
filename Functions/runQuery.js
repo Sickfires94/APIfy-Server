@@ -8,7 +8,8 @@ import CRUDQueryFlow from "./API Query Flows/CRUDQueryFlow.js";
 import hashFlow from "./API Query Flows/HashFlow.js";
 import TokenGenerateFlow from "./API Query Flows/TokenGenerateFlow.js";
 import TokenParseFlow from "./API Query Flows/TokenParseFlow.js";
-import IfConditionFlow from "./API Query Flows/IfConditionFlow.js"; // Ensure this path is correct
+import IfConditionFlow from "./API Query Flows/IfConditionFlow.js";
+import ApiTypes from "../Data/ApiTypes.js"; // Ensure this path is correct
 
 //
 // const runQuery = async (Query, outputs, TESTING_FLAG) => {
@@ -168,6 +169,10 @@ const runQuery = async (Query, outputs, TESTING_FLAG) => {
 */
 
     // Check if query should be blocked by if conditions
+
+    if(Query.type === QueryTypes.IF){
+        console.log("**************************")
+    }
 
     if(Query.conditionConnectors.length > 0){
         for (const connector of Query.conditionConnectors){
