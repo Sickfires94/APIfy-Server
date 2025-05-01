@@ -2,7 +2,7 @@ import {checkParamsExist} from "../Functions/Helper Functions/CheckBodyParams.js
 import ApiBuilder from "../models/Node.js";
 import apiConfig from "../models/ApiConfig.js";
 import mongoose from "mongoose";
-import ApiBuilderParser2 from "../Functions/ApiBuilderParser.js";
+import ApiBuilderParser from "../Functions/ApiBuilderParser.js";
 
 
 const saveBuilderState = async (req, res) => {
@@ -29,7 +29,7 @@ const saveBuilderState = async (req, res) => {
     let result;
 
     try {
-        result = await ApiBuilderParser2(apiConfigId, nodes)
+        result = await ApiBuilderParser(apiConfigId, nodes)
     }
     catch(err) {
         console.log(err)

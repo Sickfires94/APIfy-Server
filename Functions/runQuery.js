@@ -149,7 +149,7 @@ import TokenParseFlow from "./API Query Flows/TokenParseFlow.js"; // Ensure this
 // };
 
 
-const runQuery2 = async (Query, outputs, TESTING_FLAG) => {
+const runQuery = async (Query, outputs, TESTING_FLAG) => {
 
     /*
 1. go through the value sources (inside connectors) and check if any of them are null in the outputs array
@@ -183,6 +183,7 @@ const runQuery2 = async (Query, outputs, TESTING_FLAG) => {
     let output = null
 
     if(Query.model) { // If Query has model, it wants to perform a crud operation
+        console.log("Entered Crud flow")
         output = CRUDQueryFlow(Query, outputs, TESTING_FLAG)
         return output;
     }
@@ -222,4 +223,4 @@ const addToQuery = (source, operationQuery, outputs) => {
 
 
 // Ensure the function is exported for use in other modules
-export {runQuery2};
+export {runQuery};

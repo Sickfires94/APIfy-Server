@@ -32,11 +32,18 @@ const inputConnector = new Schema({
     operator: {type: String, enum:Object.values(ApiOperators), default: "$eq"},
 })
 
+const Response = new Schema({
+    conditionConnectors: [inputConnector],
+    params: [Source]
+})
+
 
 const Query = new Schema({
     model: {type: Schema.Types.ObjectId, ref: "Models"},
     findOne: Boolean,
     type: {type: String, enum: Object.values(QueryTypes)},
+    conditionConnectors: [inputConnector],
+    constant: Schema.Types.Mixed,
     inputConnectors: [{type: inputConnector, required: false}], // have set/search params with origin
     outputColumns: [String]
 })
@@ -53,7 +60,7 @@ const ApiSchema = new Schema({
         ref: "Users",
     },
     requestParams: [Source],
-    responseParams: [Source],
+    responses: [Response],
     queries: [Query],
     deployed: {type: Boolean, default: false},
     middleware: [{type: Schema.Types.ObjectId, ref: "Middlewares", }],

@@ -4,6 +4,7 @@ const ApiOperators = Object.freeze({
     GREATER_EQUAL: '$gte',
     LESSER: '$lt',
     LESSER_EQUAL: '$lte',
+    LENGTH_EQUAL: '$lengthEqual',
     IN: '$in',
     NIN: '$nin',
     AND: '$and',
@@ -11,6 +12,7 @@ const ApiOperators = Object.freeze({
     NOT: '$not',
     NOR: '$nor',
     EXISTS: '$exists',
+    IF: '$if'
 });
 
 export default ApiOperators

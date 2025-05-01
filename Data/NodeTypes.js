@@ -6,11 +6,13 @@ const NodeTypes = Object.freeze({
     TABLE_OUTPUT: 'tableOutput',
     REQUEST_PARAMS: 'requestParams',
     RESPONSE_PARAMS: 'responseParams',
+    RESPONSE_NODE: 'responseNode',
     REQUEST_INSTANCE: 'requestInstance',
     RESPONSE_INSTANCE: 'responseInstance',
     COLUM_NODE: 'columNode',
     FUNCTION_NODE_DIAMOND: 'functionNode',
     FUNCTION_NODE_TABLE: 'functionNode2',
+    LOGIC_NODE: 'logicNode', // If Conditional block
 });
 
 export default NodeTypes;

@@ -1,6 +1,6 @@
 import ApiConfigs from "../models/ApiConfig.js";
 import apiConfig from "../models/ApiConfig.js";
-import { runQuery2} from "../Functions/runQuery.js";
+import { runQuery} from "../Functions/runQuery.js";
 
 const runApi2 = async (req, res) => {
     /*
@@ -49,7 +49,7 @@ const runApi2 = async (req, res) => {
         for(let i = 0; i < api.queries.length; i++){
             if(outputs[i + outputsOffset] !== null) continue; // +1 to account for request Params at index 0
 
-            outputs[i + outputsOffset] = await runQuery2(api.queries[i], outputs, TESTING_FLAG);
+            outputs[i + outputsOffset] = await runQuery(api.queries[i], outputs, TESTING_FLAG);
             if(outputs[i + outputsOffset] !== null) {
                 madeProgress = true
                 console.log("Marking Progress")
