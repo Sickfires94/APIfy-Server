@@ -22,83 +22,22 @@ import ApiBuilder from "../models/Node.js";
 
 const createAPI = async (req, res) => {
     // Add default values and destructure
-    const { name, project, model, type, searchParams = [], setParams = [], responseParams = [] } = req.body;
+    const { name, project} = req.body;
 
     // Check required parameters
     checkParamsExist(res, [name, project]);
 
-    // Validate array parameters
-    if (!Array.isArray(searchParams)) {
-        return res.status(400).json({ error: "searchParams must be an array" }).end();
-    }
-    if (!Array.isArray(setParams)) {
-        return res.status(400).json({ error: "setParams must be an array" }).end();
-    }
-    if (!Array.isArray(responseParams)) {
-        return res.status(400).json({ error: "responseParams must be an array" }).end();
-    }
 
     let api = await ApiConfigs.findOne({ project: project, name: name }).exec();
     if (api) {
         return res.status(409).json({ error: "API already exists" }).end();
     }
 
-    let modelDef = await Model.findOne({ _id: model }).exec();
-    if (!modelDef) {
-        return res.status(404).json({ error: "Model Not Found" }).end();
-    }
-
-    let columns = getColumnsFromModel(modelDef);
-
-    console.log("search Params: " + searchParams);
-
-    if (
-        !checkIfArrayContainsValidColums(
-            searchParams.map(param => param?.column),
-            columns
-        ) ||
-        !checkIfArrayContainsValidColums(setParams, columns) ||
-        !checkIfArrayContainsValidColums(responseParams, columns)
-    ) {
-        return res.status(400).json({ error: "Invalid parameters" }).end();
-    }
-
-    // Existing switch case remains the same
-    switch (type) {
-        case (ApiTypes.GET):
-            break;
-        case (ApiTypes.POST):
-            if (setParams.length < 1)
-                return res.status(403).json({ error: "At least 1 parameter should be set" });
-            break;
-        case (ApiTypes.UPDATE):
-            if (setParams.length < 1)
-                return res.status(403).json({ error: "At least 1 parameter should be set" });
-            break;
-        case (ApiTypes.DELETE):
-            if (searchParams.length < 1)
-                return res.status(403).json({ error: "At least 1 parameter should be searched for" });
-            break;
-        case (ApiTypes.AUTH):
-            if (searchParams.length < 2 && responseParams.length > 1)
-                return res.status(403).json({ error: "Invalid Set of Parameters" });
-            break;
-        default:
-            return res.status(400).json({ error: "Invalid Request Type" }).end();
-    }
-
-    const transformedSearchParams = transformOperators(searchParams);
-
     // Create API Config
     api = new ApiConfig({
         name,
         project,
         user: req.user.id,
-        model: model,
-        searchParams: transformedSearchParams,
-        setParams: setParams,
-        responseParams: responseParams,
-        type: type,
     });
 
     let apiBuilder = new ApiBuilder({

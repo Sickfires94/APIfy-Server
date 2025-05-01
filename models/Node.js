@@ -8,6 +8,8 @@ const ConfigurationSchema = new Schema({
   type: { type: String },
   outputColums: [String],
   operator: { type: String },
+  message: {tyep: String},
+  httpCode: {type: Number}
 }, { _id: false });
 
 const EdgeSchema = new Schema({
