@@ -138,6 +138,18 @@ const getData = async (req,res)=>{
     res.json(data)
 }
 
+const deleteData = async (req,res)=>{
+    console.log('deleting data');
+    console.log(req.modelName)
+    const userModel = mongoose.model(req.modelName);
+
+    const {id} = req.body;
+    console.log("ID: ", id)
+    const data = await userModel.findByIdAndDelete(id).exec();
+
+    res.json(data)
+}
+
 
 export {
     createModel,
@@ -145,5 +157,6 @@ export {
     getUserModels,
     addRow,
     getModel,
-    getData
+    getData,
+    deleteData
 };
