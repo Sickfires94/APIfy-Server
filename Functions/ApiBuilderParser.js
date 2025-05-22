@@ -415,6 +415,10 @@ import ApiOperators from "../Data/ApiOperators.js";
 
 
         for(let i = offset; i < nodes.length; i++){
+
+            // Initialize EdgesFrom Array if its missing
+            if(!nodes[i].edgesFrom) nodes[i].edgesFrom = [];
+
             let connectors = [];
             let conditionConnectors = [];
             switch(nodes[i].nodeType){
@@ -424,6 +428,7 @@ import ApiOperators from "../Data/ApiOperators.js";
                 case(NodeTypes.RESPONSE_NODE):{
                     let response = {}
                     response.params = []
+
 
                     // Store If activation edges (They are stored in the node itself, not the children)
                     for(const edge of nodes[i].edgesFrom){
