@@ -1,16 +1,16 @@
 import ApiConfig from "../models/ApiConfig.js"; // Adjust path if needed
 import ApiConfigs from "../models/ApiConfig.js";
-import InputConnectorTypes from "../Data/InputConnectorTypes.js"; // Adjust path if needed
+import InputConnectorTypes from "../Enums/InputConnectorTypes.js"; // Adjust path if needed
 import mongoose from "mongoose";
-import NodeTypes from "../Data/NodeTypes.js";
-import nodeTypes from "../Data/NodeTypes.js";
+import NodeTypes from "../Enums/NodeTypes.js";
+import nodeTypes from "../Enums/NodeTypes.js";
 import Models from "../models/Model.js";
-import sourceTypes from "../Data/sourceTypes.js";
-import QueryTypes from "../Data/QueryTypes.js";
-import ApiTypes from "../Data/ApiTypes.js";
-import FunctionTypes from "../Data/FunctionTypes.js";
-import NodeFunctionNames from "../Data/FunctionTypes.js";
-import ApiOperators from "../Data/ApiOperators.js";
+import sourceTypes from "../Enums/sourceTypes.js";
+import QueryTypes from "../Enums/QueryTypes.js";
+import ApiTypes from "../Enums/ApiTypes.js";
+import FunctionTypes from "../Enums/FunctionTypes.js";
+import NodeFunctionNames from "../Enums/FunctionTypes.js";
+import ApiOperators from "../Enums/ApiOperators.js";
 
 //
 // // Helper function to find a node by its ID within the nodes array

@@ -4,7 +4,7 @@ import parseModel from "../Functions/parseModel.js";
 import mongoose from "mongoose";
 import Models from "../models/Model.js";
 import {checkParamsExist} from "../Functions/Helper Functions/CheckBodyParams.js";
-import ColumTypes from "../Data/ColumTypes.js";
+import ColumTypes from "../Enums/ColumTypes.js";
 
 
 const createModel = async (req, res) => {

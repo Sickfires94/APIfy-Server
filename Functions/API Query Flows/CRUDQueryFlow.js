@@ -1,7 +1,7 @@
 import Models from "../../models/Model.js";
 import mongoose from "mongoose";
 import {query} from "express";
-import QueryTypes from "../../Data/QueryTypes.js";
+import QueryTypes from "../../Enums/QueryTypes.js";
 
 const CrudQueryFlow = async (Query, outputs, TESTING_FLAG) => {
 
@@ -47,7 +47,7 @@ const CrudQueryFlow = async (Query, outputs, TESTING_FLAG) => {
     }
 
     output = {} // Make output an object instead of seperate fields
-    if(Query.type !== QueryTypes.INSERT) output["output"] = await model.find(findQuery, {"_id": 0});
+    if(Query.type !== QueryTypes.INSERT) output["output"]= await model.find(findQuery, {"_id": 0});
 
     switch (Query.type){
         case (QueryTypes.UPDATE):
@@ -60,9 +60,9 @@ const CrudQueryFlow = async (Query, outputs, TESTING_FLAG) => {
                 await model.deleteMany(findQuery, {"_id": 0});
             break;
 
-        case (QueryTypes.FIND_ALL):
-            await model.find(findQuery, {"_id": 0});
-            break;
+        // case (QueryTypes.FIND_ALL):
+        //     await model.find(findQuery, {"_id": 0});
+        //     break;
 
         case (QueryTypes.INSERT):
             console.log("************ Running Insert **********************")
@@ -81,7 +81,7 @@ const CrudQueryFlow = async (Query, outputs, TESTING_FLAG) => {
 
         }
     }
-    console.log(`Inserted: ${output["output"]}`);
+    console.log(`output: ${JSON.stringify(output)}`);
     return output
 }
 

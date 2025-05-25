@@ -1,15 +1,15 @@
 import mongoose from 'mongoose';
-import InputConnectorTypes from "../Data/InputConnectorTypes.js"; // Ensure this path is correct
+import InputConnectorTypes from "../Enums/InputConnectorTypes.js"; // Ensure this path is correct
 import Models from "../models/Model.js";
 import {query} from "express";
-import QueryTypes from "../Data/QueryTypes.js";
+import QueryTypes from "../Enums/QueryTypes.js";
 import CRUD_Query_Flow from "./API Query Flows/CRUDQueryFlow.js";
 import CRUDQueryFlow from "./API Query Flows/CRUDQueryFlow.js";
 import hashFlow from "./API Query Flows/HashFlow.js";
 import TokenGenerateFlow from "./API Query Flows/TokenGenerateFlow.js";
 import TokenParseFlow from "./API Query Flows/TokenParseFlow.js";
 import IfConditionFlow from "./API Query Flows/IfConditionFlow.js";
-import ApiTypes from "../Data/ApiTypes.js"; // Ensure this path is correct
+import ApiTypes from "../Enums/ApiTypes.js"; // Ensure this path is correct
 
 //
 // const runQuery = async (Query, outputs, TESTING_FLAG) => {
@@ -177,7 +177,7 @@ const runQuery = async (Query, outputs, TESTING_FLAG) => {
 
             if(!outputs[source.index] || !outputs[source.index][source.sourceName]){
                 console.log(`Skipping Query: ${JSON.stringify(Query)}`);
-                return null;
+                return {output: null, error: null};
             }
         }
     }
@@ -191,36 +191,45 @@ const runQuery = async (Query, outputs, TESTING_FLAG) => {
             // Check if the index exists and the value at that index is not null/undefined
             if (source.index >= outputs.length || outputs[source.index] === null || outputs[source.index] === undefined) {
                 console.log(`runQuery: Waiting for output dependency from index ${source.index}`);
-                return null; // Indicate that the query cannot run yet due to missing dependency
+                return {output: null, error: null}; // Indicate that the query cannot run yet due to missing dependency
             }
         }
     }
 
     let output = null
 
-    if(Query.model) { // If Query has model, it wants to perform a crud operation
-        output = CRUDQueryFlow(Query, outputs, TESTING_FLAG)
-        return output;
-    }
+    try {
 
-    switch (Query.type){
-        case (QueryTypes.HASH):
-            output = await hashFlow(Query, outputs)
-            break;
-        case (QueryTypes.TOKEN_PARSE):
-            output = await TokenParseFlow(Query, outputs)
-            break;
-        case (QueryTypes.TOKEN_GENERATE):
-            output = await TokenGenerateFlow(Query, outputs)
-            break;
-        case (QueryTypes.IF):
-            output = await IfConditionFlow(Query, outputs)
-            break;
+        if (Query.model) { // If Query has model, it wants to perform a crud operation
+            output = await CRUDQueryFlow(Query, outputs, TESTING_FLAG)
+        }
+        switch (Query.type) {
+            case (QueryTypes.HASH):
+                output = await hashFlow(Query, outputs)
+                break;
+            case (QueryTypes.TOKEN_PARSE):
+                output = await TokenParseFlow(Query, outputs)
+                break;
+            case (QueryTypes.TOKEN_GENERATE):
+                output = await TokenGenerateFlow(Query, outputs)
+                break;
+            case (QueryTypes.IF):
+                output = await IfConditionFlow(Query, outputs)
+                break;
+        }
     }
+    catch(err) {
+        console.error(err);
 
+        const errorQuery = {}
+        errorQuery.type = Query.type;
+        if(Query.model) errorQuery.model = Query.model;
+
+        return {output: null, error: {message: "Query Failed to complete", errorQuery:errorQuery}};
+    }
     // console.log(`Outputs: ${JSON.stringify(outputs)}`);
 
-    return output;
+    return {output: output, error: null};
 
 }
 

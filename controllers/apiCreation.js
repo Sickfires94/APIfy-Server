@@ -12,7 +12,7 @@ import { GetFlow } from "../Functions/APIs/Get.js";
 import { PostFlow } from "../Functions/APIs/Post.js";
 import { DeleteFlow } from "../Functions/APIs/Delete.js";
 import { UpdateFlow } from "../Functions/APIs/Update.js";
-import ApiTypes from "../Data/ApiTypes.js";
+import ApiTypes from "../Enums/ApiTypes.js";
 import { request, response } from "express";
 import { checkParamsExist } from "../Functions/Helper Functions/CheckBodyParams.js";
 import { transformOperators } from "../Functions/Helper Functions/TransformOperators.js";

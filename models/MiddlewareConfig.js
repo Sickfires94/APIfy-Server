@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import ApiTypes from '../Data/ApiTypes.js';
+import ApiTypes from '../Enums/ApiTypes.js';
 
 const schema = Schema;
 

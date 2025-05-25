@@ -1,11 +1,11 @@
 import { Schema, model } from 'mongoose';
-import ApiTypes from '../Data/ApiTypes.js';
-import ApiOperators from "../Data/ApiOperators.js";
-import columTypes from "../Data/ColumTypes.js";
-import InputConnectorTypes from "../Data/InputConnectorTypes.js";
-import QueryTypes from "../Data/QueryTypes.js";
-import ColumTypes from "../Data/ColumTypes.js";
-import IfConditionDataTypes from "../Data/IfConditionDataTypes.js";
+import ApiTypes from '../Enums/ApiTypes.js';
+import ApiOperators from "../Enums/ApiOperators.js";
+import columTypes from "../Enums/ColumTypes.js";
+import InputConnectorTypes from "../Enums/InputConnectorTypes.js";
+import QueryTypes from "../Enums/QueryTypes.js";
+import ColumTypes from "../Enums/ColumTypes.js";
+import IfConditionDataTypes from "../Enums/IfConditionDataTypes.js";
 
 const schema = Schema;
 

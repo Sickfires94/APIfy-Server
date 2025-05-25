@@ -1,6 +1,8 @@
 import ApiConfigs from "../models/ApiConfig.js";
 import apiConfig from "../models/ApiConfig.js";
 import { runQuery} from "../Functions/runQuery.js";
+import Log from "../models/LogEntry.js";
+import {httpStatusCodeCategories, logLevels} from "../Enums/Logger.js";
 
 const runApi2 = async (req, res) => {
     /*
@@ -19,6 +21,8 @@ const runApi2 = async (req, res) => {
     */
 
     const { name, project } = req.params;
+
+
     console.log("Entered flow")
     // Combine body, query, and potentially params as initial inputs
     const requestInputs = { ...req.body, ...req.query, ...req.params }; // Using all potential input sources
@@ -27,15 +31,29 @@ const runApi2 = async (req, res) => {
     const api = await ApiConfigs.findOne({name: name, project: project}).lean()
     if(!api) return res.status(404).json({"error": "Api Not Found"})
 
+
+    // Initialize Logging
+    const startTime = Date.now();
+    const log = await new Log({apiName: name, project: project, testingFlag: TESTING_FLAG});
+    log.save()
+    const errorsList = []
+
+
     let outputs = new Array(api.queries.length + 1).fill(null);
     outputs[0] = {}  // To initialize request Params
 
     try{
         for(const paramSource of api.requestParams){
+            if(!requestInputs[paramSource.name]){
+                log.status = httpStatusCodeCategories.CLIENT_ERROR;
+                errorsList.push({message: `Request Parameter "${paramSource.name}" not found.`});
+                continue;
+            }
             outputs[0][paramSource.name] = requestInputs[paramSource.name]
         }
     }
     catch (e) {
+
         console.error(`Error while initialising Request Params, ${e}`);
     }
 
@@ -48,12 +66,18 @@ const runApi2 = async (req, res) => {
         madeProgress = false
         for(let i = 0; i < api.queries.length; i++){
             if(outputs[i + outputsOffset] !== null) continue; // +1 to account for request Params at index 0
+            const {output, error} = await runQuery(api.queries[i], outputs, TESTING_FLAG, errorsList);
+            if(error){
+                errorsList.push(error);
+                log.status = httpStatusCodeCategories.SERVER_ERROR;
+            }
 
-            outputs[i + outputsOffset] = await runQuery(api.queries[i], outputs, TESTING_FLAG);
-            if(outputs[i + outputsOffset] !== null) {
+            if(output !== null) {
                 madeProgress = true
                 console.log("Marking Progress")
             }
+            outputs[i + outputsOffset] = output;
+
         }
 
         console.log("Made Progress: " + madeProgress);
@@ -77,7 +101,7 @@ const runApi2 = async (req, res) => {
             for (const connector of response.conditionConnectors){
                 const source = connector.valueSources[0]
                 if(!outputs[source.index] || !outputs[source.index][source.sourceName]){
-                    console.log("Reached here!!!")
+                    console.log(`Response at ${i} invalid`)
                     responseValid = false;
                     break;
                 }
@@ -89,13 +113,14 @@ const runApi2 = async (req, res) => {
         for(const param of response.params){
             if(!outputs[param.index] || !outputs[param.index][param.sourceName]){
                 responseValid = false;
+                console.log(`Response at ${i} invalid`)
+                break;
             }
         }
         if(responseValid){
             responseIndex = i;
             break;
         }
-
     }
 
     if(responseIndex === -1) return res.status(500).json({"error": "API did not function completely"}).end()
@@ -112,7 +137,19 @@ const runApi2 = async (req, res) => {
     let message = api.responses[responseIndex].message;
     let httpCode = api.responses[responseIndex].httpCode;
 
-    return res.status(httpCode).json({message: message, data: response}).end()
+    if(errorsList.length > 0){
+        log.errorsList = errorsList;
+        log.status = httpStatusCodeCategories.ERROR;
+    }
+    else {
+        log.status = httpStatusCodeCategories.SUCCESS;
+    }
+    log.statusCode = httpCode;
+    log.responseMessage = message;
+    log.responseTimeMs = Date.now() - startTime;
+    log.save();
+
+    return res.status(httpCode).json({message: message, data: response, errors: errorsList}).end()
 
 }
 

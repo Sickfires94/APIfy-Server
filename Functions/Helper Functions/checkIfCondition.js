@@ -1,4 +1,4 @@
-import ApiOperators from "../../Data/ApiOperators.js";
+import ApiOperators from "../../Enums/ApiOperators.js";
 
 const checkIfCondition = (input, comparator, operator) => {
     console.log(`Operator: ${operator}`)

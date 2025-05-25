@@ -1,5 +1,5 @@
 import mongoose, {Schema as schema} from "mongoose";
-import ColumTypes from "../Data/ColumTypes.js";
+import ColumTypes from "../Enums/ColumTypes.js";
 
 
 

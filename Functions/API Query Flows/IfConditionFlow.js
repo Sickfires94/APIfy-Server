@@ -1,5 +1,5 @@
 import checkIfCondition from "../Helper Functions/checkIfCondition.js";
-import IfConditionDataTypes from "../../Data/IfConditionDataTypes.js";
+import IfConditionDataTypes from "../../Enums/IfConditionDataTypes.js";
 
 const IfConditionFlow = async (Query, outputs) => {
 
