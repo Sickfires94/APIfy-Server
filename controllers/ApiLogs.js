@@ -17,7 +17,7 @@ const getLogs = async (req, res) => {
         const {
             apiName,
             level,
-            source,
+            statusCode,
             search, // General search term for message
             startDate,
             endDate
@@ -29,17 +29,18 @@ const getLogs = async (req, res) => {
             filter.apiName = apiName;
         }
 
+        if(statusCode){
+            filter.statusCode = statusCode;
+        }
+
         if (level) {
             filter.level = level;
         }
 
-        if (source) {
-            filter.source = source;
-        }
 
         if (search) {
             // Case-insensitive partial match for message
-            filter.message = {
+            filter.responseMessage = {
                 $regex: search,
                 $options: 'i'
             };

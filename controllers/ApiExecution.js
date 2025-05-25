@@ -140,6 +140,7 @@ const runApi2 = async (req, res) => {
     if(errorsList.length > 0){
         log.errorsList = errorsList;
         log.status = httpStatusCodeCategories.ERROR;
+        log.level = logLevels.ERROR
     }
     else {
         log.status = httpStatusCodeCategories.SUCCESS;
