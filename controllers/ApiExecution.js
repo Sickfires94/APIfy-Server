@@ -45,18 +45,21 @@ const runApi2 = async (req, res) => {
     try{
         for(const paramSource of api.requestParams){
             if(!requestInputs[paramSource.name]){
+                console.log("Parameter not found")
                 log.status = httpStatusCodeCategories.CLIENT_ERROR;
-                errorsList.push({message: `Request Parameter "${paramSource.name}" not found.`});
+                errorsList.push({message: `Request Parameter ${paramSource.name} not found.`});
                 continue;
             }
             outputs[0][paramSource.name] = requestInputs[paramSource.name]
         }
     }
     catch (e) {
-
         console.error(`Error while initialising Request Params, ${e}`);
     }
 
+    if(errorsList.length > 0){
+        return res.status(400).json({message: "one or more request Parameters are missing", "errors": errorsList});
+    }
 
     const outputsOffset = 1; // 1 to account for request Params at index 0
 
