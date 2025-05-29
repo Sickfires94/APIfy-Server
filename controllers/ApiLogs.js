@@ -1,6 +1,7 @@
 import Log from "../models/LogEntry.js";
 import Project from "./project.js";
 import Projects from "../models/Project.js";
+import {logTimeUnit} from "../Enums/Logger.js";
 
 const getLogs = async (req, res) => {
     try {
@@ -104,4 +105,151 @@ const getLogs = async (req, res) => {
     }
 };
 
-export {getLogs}
+const getLogCountByRange = async (req, res) => {
+    try {
+        const { projectId } = req.params;
+        // 'period' is a number, 'unit' can be 'hours', 'days', or 'months'
+        const period = parseInt(req.query.period);
+        const unit = req.query.unit;
+        const apiName = req.query.apiName ?? ''; // Get apiName from query, default to empty string
+
+        // Authentication and authorization checks
+        const project = await Projects.findById(projectId);
+        if (!project) return res.status(404).send("Project Not Found");
+        if (!project.user.equals(req.user.id)) return res.status(401).json({ error: "Unauthorized access for this project" });
+
+        if (isNaN(period) || period <= 0) {
+            return res.status(400).json({ error: "Invalid 'period' specified. It must be a positive number." });
+        }
+        // Validate unit against the defined enum values
+        if (!Object.values(logTimeUnit).includes(unit)) {
+            return res.status(400).json({ error: `Invalid 'unit' specified. Valid units are '${Object.values(logTimeUnit).join("', '")}'.` });
+        }
+
+        let startDate;
+        let endDate = new Date(); // Default end date to now
+        let groupById; // For $group _id to define the time unit for aggregation
+        let dateFormat; // For $dateToString format
+
+        switch (unit) {
+            case logTimeUnit.HOUR:
+                // Calculate start date for the specified number of hours
+                startDate = new Date(endDate.getTime() - (period * 60 * 60 * 1000));
+                // Group by year, month, day, and hour for hourly counts
+                groupById = {
+                    year: { $year: "$requestTime" }, // Changed from $timestamp
+                    month: { $month: "$requestTime" }, // Changed from $timestamp
+                    day: { $dayOfMonth: "$requestTime" }, // Changed from $timestamp
+                    hour: { $hour: "$requestTime" } // Changed from $timestamp
+                };
+                dateFormat = "%Y-%m-%dT%H:00";
+                break;
+            case logTimeUnit.DAY:
+                // Calculate start date for the specified number of days
+                startDate = new Date(endDate.getTime() - (period * 24 * 60 * 60 * 1000));
+                // Group by year, month, and day for daily counts
+                groupById = {
+                    year: { $year: "$requestTime" }, // Changed from $timestamp
+                    month: { $month: "$requestTime" }, // Changed from $timestamp
+                    day: { $dayOfMonth: "$requestTime" } // Changed from $timestamp
+                };
+                dateFormat = "%Y-%m-%d";
+                break;
+            case logTimeUnit.MONTH:
+                // Calculate start date for the specified number of months ago (start of that month)
+                startDate = new Date(endDate.getFullYear(), endDate.getMonth() - period, 1);
+                // Group by year and month for monthly counts
+                groupById = {
+                    year: { $year: "$requestTime" }, // Changed from $timestamp
+                    month: { $month: "$requestTime" } // Changed from $timestamp
+                };
+                dateFormat = "%Y-%m";
+                break;
+        }
+
+        // Build the match filter dynamically
+        const matchFilter = {
+            project: project._id,
+            requestTime: { // Changed from timestamp
+                $gte: startDate,
+                $lte: endDate
+            }
+        };
+
+        // Add apiName to filter if it's provided and not an empty string
+        if (apiName) {
+            matchFilter.apiName = apiName;
+        }
+
+        // Define the aggregation pipeline
+        const aggregationPipeline = [
+            {
+                // Stage 1: Filter documents by project ID, requestTime range, and optionally apiName
+                $match: matchFilter
+            },
+            {
+                // Stage 2: Group documents by the defined time unit (hour, day, or month)
+                $group: {
+                    _id: groupById, // Grouping key based on the period
+                    count: { $sum: 1 } // Count documents in each group
+                }
+            },
+            {
+                // Stage 3: Sort the results chronologically
+                $sort: {
+                    '_id.year': 1,
+                    '_id.month': 1,
+                    '_id.day': 1, // Sort by day is relevant for daily/hourly grouping
+                    '_id.hour': 1 // Sort by hour is relevant only for hourly grouping
+                }
+            },
+            {
+                // Stage 4: Project the final output to format the time unit and include the count
+                $project: {
+                    _id: 0, // Exclude the default _id field from the output
+                    timeUnit: {
+                        $dateToString: {
+                            format: dateFormat,
+                            date: {
+                                // Reconstruct a date object from the grouped _id components
+                                $dateFromParts: {
+                                    year: "$_id.year",
+                                    month: "$_id.month",
+                                    day: "$_id.day",
+                                    // Hour is only relevant for hourly grouping
+                                    hour: unit === logTimeUnit.HOUR ? "$_id.hour" : 0
+                                }
+                            }
+                        }
+                    },
+                    count: "$count" // Include the count of logs
+                }
+            }
+        ];
+
+        // Execute the aggregation pipeline
+        const logCounts = await Log.aggregate(aggregationPipeline);
+
+        console.log(`Pipeline: ${JSON.stringify(aggregationPipeline)}`);
+
+        // Send a successful response with the aggregated log counts
+        res.status(200).json({
+            status: 'success',
+            period: `${period} ${unit}`, // Reflect the requested period and unit
+            results: logCounts.length,
+            data: logCounts
+        });
+
+    } catch (error) {
+        // Handle any errors during the process
+        console.error('Error retrieving log counts by range:', error);
+        res.status(500).json({
+            status: 'error',
+            message: 'Failed to retrieve log counts by range',
+            error: error.message
+        });
+    }
+};
+
+
+export {getLogs, getLogCountByRange}

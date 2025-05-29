@@ -13,4 +13,10 @@ const httpStatusCodeCategories = Object.freeze({
     SERVER_ERROR: 'Server Error',
 });
 
-export {logLevels, httpStatusCodeCategories};
+const logTimeUnit = Object.freeze({
+    HOUR: 'hours',
+    DAY: 'days',
+    MONTH: 'months',
+})
+
+export {logLevels, httpStatusCodeCategories, logTimeUnit};
