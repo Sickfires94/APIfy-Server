@@ -306,4 +306,102 @@ const getLogCountByRange = async (req, res) => {
 };
 
 
-export {getLogs, getLogCountByRange}
+const getApiStats = async (req, res) => {
+    try {
+        const { projectId } = req.params;
+
+        // Authentication and authorization checks
+        const project = await Projects.findById(projectId);
+        if (!project) return res.status(404).send("Project Not Found");
+        if (!project.user.equals(req.user.id)) return res.status(401).json({ error: "Unauthorized access for this project" });
+
+        const aggregationPipeline = [
+            {
+                // Stage 1: Filter documents by project ID only
+                $match: {
+                    project: project._id,
+                }
+            },
+            {
+                // Stage 2: Use $facet to perform multiple aggregations concurrently
+                $facet: {
+                    // Pipeline to get counts and average response time per apiName
+                    apiNameCounts: [
+                        {
+                            $group: {
+                                _id: "$apiName", // Group by apiName
+                                count: { $sum: 1 }, // Count hits for each apiName
+                                totalResponseTime: { $sum: "$responseTimeMs" } // Sum response times using the correct property name
+                            }
+                        },
+                        {
+                            $project: {
+                                _id: 0, // Exclude default _id
+                                apiName: "$_id",
+                                count: "$count",
+                                // Calculate average response time for each API
+                                averageResponseTimeMs: { $divide: ["$totalResponseTime", "$count"] }
+                            }
+                        },
+                        {
+                            $sort: { apiName: 1 } // Sort results by apiName
+                        }
+                    ],
+                    // Pipeline to get overall total count and average response time for the project
+                    overallStats: [
+                        {
+                            $group: {
+                                _id: null, // Group all matching documents together
+                                totalCountOfCalls: { $sum: 1 },
+                                overallTotalResponseTime: { $sum: "$responseTimeMs" } // Sum all response times using the correct property name
+                            }
+                        },
+                        {
+                            $project: {
+                                _id: 0, // Exclude default _id
+                                totalCountOfCalls: "$totalCountOfCalls",
+                                // Calculate overall average response time for the project
+                                overallAverageResponseTimeMs: { $divide: ["$overallTotalResponseTime", "$totalCountOfCalls"] }
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                // Stage 3: Project the final output to combine results from $facet
+                $project: {
+                    apiNameCounts: "$apiNameCounts", // Array of stats per apiName
+                    // Extract totalCountOfCalls and overallAverageResponseTimeMs from the first (and only) element of overallStats array
+                    totalCountOfCalls: { $arrayElemAt: ["$overallStats.totalCountOfCalls", 0] },
+                    overallAverageResponseTimeMs: { $arrayElemAt: ["$overallStats.overallAverageResponseTimeMs", 0] }
+                }
+            }
+        ];
+
+        // Execute the aggregation pipeline
+        const result = await Log.aggregate(aggregationPipeline);
+
+        // The result of $facet is an array with one element containing the outputs
+        const stats = result.length > 0 ? result[0] : { apiNameCounts: [], totalCountOfCalls: 0, overallAverageResponseTimeMs: 0 };
+
+        // Send a successful response with the aggregated statistics
+        res.status(200).json({
+            status: 'success',
+            data: stats
+        });
+
+    } catch (error) {
+        // Handle any errors during the process
+        console.error('Error retrieving API stats:', error);
+        res.status(500).json({
+            status: 'error',
+            message: 'Failed to retrieve API statistics',
+            error: error.message
+        });
+    }
+};
+
+
+
+
+export {getLogs, getLogCountByRange, getApiStats}
