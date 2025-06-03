@@ -1,7 +1,8 @@
+import ApiFolders from "../models/ApiFolder.js";
 import Log from "../models/LogEntry.js";
-import Project from "./project.js";
 import Projects from "../models/Project.js";
 import {logTimeUnit} from "../Enums/Logger.js";
+import CircularJSON from "qs";
 
 const getLogs = async (req, res) => {
     try {
@@ -15,19 +16,44 @@ const getLogs = async (req, res) => {
         if(!project.user.equals(req.user.id)) return res.status(401).json({error: "Unauthorized access for this project"});
 
         // --- Filtering Options ---
-        const {
+        let {
             apiName,
             level,
             statusCode,
             search, // General search term for message
             startDate,
-            endDate
+            endDate,
+            apiFolder
         } = req.query;
+
+
+        // console.log(`apiName: ${apiName}`)
+
+        if (apiName && !Array.isArray(apiName)) {
+            apiName = [apiName];
+        }
+
+
+        if(!apiName) apiName = [];
 
         let filter = {};
 
-        if(apiName){
-            filter.apiName = apiName;
+        filter.project = projectId;
+
+        if(apiFolder){
+            const folder = await ApiFolders.findOne({folderName: apiFolder, project: projectId}, {apis: 1}).populate("apis", {_id: 0, name: 1});
+            if(!folder) return res.status(404).send("Folder does not exist");
+
+
+
+            for(const api of folder.apis){
+                apiName.push(api.name);
+            }
+
+        }
+
+        if(apiName.length > 0){
+            filter.apiName = {'$in' : apiName};
         }
 
         if(statusCode){
@@ -47,6 +73,7 @@ const getLogs = async (req, res) => {
             };
         }
 
+
         if (startDate || endDate) {
             filter.timestamp = {};
             if (startDate) {
@@ -60,7 +87,7 @@ const getLogs = async (req, res) => {
             }
         }
 
-        console.log(`Logs retrieval filter: ${JSON.stringify(filter)}`);
+        // console.log(`Logs retrieval filter: ${JSON.stringify(filter)}`);
 
         // --- Sorting Options ---
         const {
@@ -111,7 +138,9 @@ const getLogCountByRange = async (req, res) => {
         // 'period' is a number, 'unit' can be 'hours', 'days', or 'months'
         const period = parseInt(req.query.period);
         const unit = req.query.unit;
-        const apiName = req.query.apiName ?? ''; // Get apiName from query, default to empty string
+        let apiName = req.query.apiName ?? []; // Get apiName from query, default to empty string
+        const apiFolder = req.query.apiFolder
+
 
         // Authentication and authorization checks
         const project = await Projects.findById(projectId);
@@ -176,9 +205,22 @@ const getLogCountByRange = async (req, res) => {
             }
         };
 
-        // Add apiName to filter if it's provided and not an empty string
-        if (apiName) {
-            matchFilter.apiName = apiName;
+        if (apiName && !Array.isArray(apiName)) {
+            apiName = [apiName];
+        }
+
+        if(apiFolder){
+            const folder = await ApiFolders.findOne({folderName: apiFolder, project: projectId}, {apis: 1}).populate("apis", {_id: 0, name: 1});
+            if(!folder) return res.status(404).send("Folder does not exist");
+
+            for(const api of folder.apis){
+                apiName.push(api.name);
+            }
+
+        }
+
+        if(apiName.length > 0){
+            matchFilter.apiName = {'$in' : apiName};
         }
 
         // Define the aggregation pipeline

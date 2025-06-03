@@ -35,7 +35,7 @@ const runApi2 = async (req, res) => {
     // Initialize Logging
     const startTime = Date.now();
     const log = await new Log({apiName: name, project: project, testingFlag: TESTING_FLAG});
-    log.save()
+    await log.save()
     const errorsList = []
 
 
@@ -71,6 +71,7 @@ const runApi2 = async (req, res) => {
             if(outputs[i + outputsOffset] !== null) continue; // +1 to account for request Params at index 0
             const {output, error} = await runQuery(api.queries[i], outputs, TESTING_FLAG, errorsList);
             if(error){
+                console.log("BIGGGG ERRRORRR")
                 errorsList.push(error);
                 log.status = httpStatusCodeCategories.SERVER_ERROR;
             }
@@ -126,19 +127,30 @@ const runApi2 = async (req, res) => {
         }
     }
 
-    if(responseIndex === -1) return res.status(500).json({"error": "API did not function completely"}).end()
 
-    console.log(`Response index: ${responseIndex}`)
-    console.log(`Returning response: ${JSON.stringify(api.responses[responseIndex])}`);
+    let message;
+    let httpCode;
 
-    // // Build the response
-    for(const param of api.responses[responseIndex].params) {
-        if(outputs[param.index] === null || outputs[param.index] === undefined) return res.status(500).json({"error": "API did not function completely"}).end()
-        response[param.name] = outputs[param.index][param.sourceName]
+    if(responseIndex === -1) {
+        //res.status(500).json({"error": "API did not function completely"}).end()
+
+        message = "API did not function completely"
+        httpCode = 500
     }
 
-    let message = api.responses[responseIndex].message;
-    let httpCode = api.responses[responseIndex].httpCode;
+
+    // // Build the response
+    else {
+        for(const param of api.responses[responseIndex].params) {
+            if(outputs[param.index] === null || outputs[param.index] === undefined) return res.status(500).json({"error": "API did not function completely"}).end()
+            response[param.name] = outputs[param.index][param.sourceName]
+        }
+
+        message = api.responses[responseIndex].message;
+        httpCode = api.responses[responseIndex].httpCode;
+    }
+
+
 
     if(errorsList.length > 0){
         log.errorsList = errorsList;
@@ -151,7 +163,7 @@ const runApi2 = async (req, res) => {
     log.statusCode = httpCode;
     log.responseMessage = message;
     log.responseTimeMs = Date.now() - startTime;
-    log.save();
+    await log.save();
 
     return res.status(httpCode).json({message: message, data: response, errors: errorsList}).end()
 

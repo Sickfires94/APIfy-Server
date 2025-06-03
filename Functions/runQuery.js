@@ -202,6 +202,17 @@ const runQuery = async (Query, outputs, TESTING_FLAG) => {
 
         if (Query.model) { // If Query has model, it wants to perform a crud operation
             output = await CRUDQueryFlow(Query, outputs, TESTING_FLAG)
+
+            // console.log(`Outputs: ${JSON.stringify(output)}`);
+
+            // console.log(`outputColumns: ${Query.outputColumns}`)
+            // console.log(`outputColumns length: ${Query.outputColumns.length}`)
+            // console.log(`outputColumns: ${output["errors"]}`)
+
+            if(output["output"] && output["output"]["errors"]){
+                console.log("Error Detected")
+                return {output: null, error: output.output.errors}
+            }
         }
         switch (Query.type) {
             case (QueryTypes.HASH):

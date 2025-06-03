@@ -1,4 +1,4 @@
-import {Schema, model, Model} from 'mongoose';
+import mongoose, {Schema, model} from 'mongoose';
 
 const schema = Schema;
 
@@ -8,5 +8,6 @@ const apiFolderSchema = new Schema({
   apis: [{ type: schema.Types.ObjectId, ref: 'ApiConfigs' }] 
 });
 
-const ApiFolders = model('ApiFolder', apiFolderSchema);
+const ApiFolders = mongoose.models.ApiFolder || mongoose.model('ApiFolder', apiFolderSchema);
+
 export default ApiFolders;
