@@ -201,6 +201,8 @@ const getLogCountByRange = async (req, res) => {
                 break;
         }
 
+        console.log(`Project Id: ${project._id}`)
+
         // Build the match filter dynamically
         const matchFilter = {
             project: project._id,
@@ -209,6 +211,8 @@ const getLogCountByRange = async (req, res) => {
                 $lte: endDate
             }
         };
+
+
 
         if (apiName && !Array.isArray(apiName)) {
             apiName = [apiName];
@@ -224,11 +228,12 @@ const getLogCountByRange = async (req, res) => {
 
         }
 
-        matchFilter.project = projectId
 
         if(apiName.length > 0){
             matchFilter.apiName = {'$in' : apiName};
         }
+
+        // matchFilter.project = projectId;
 
         // Define the aggregation pipeline
         const aggregationPipeline = [
