@@ -58,6 +58,7 @@ const runApi2 = async (req, res) => {
     }
 
     if(errorsList.length > 0){
+        await log.save();
         return res.status(400).json({message: "one or more request Parameters are missing", "errors": errorsList});
     }
 
@@ -154,7 +155,7 @@ const runApi2 = async (req, res) => {
 
     if(errorsList.length > 0){
         log.errorsList = errorsList;
-        log.status = httpStatusCodeCategories.ERROR;
+        log.status = httpStatusCodeCategories.SERVER_ERROR;
         log.level = logLevels.ERROR
     }
     else {

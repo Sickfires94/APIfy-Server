@@ -20,6 +20,7 @@ const getLogs = async (req, res) => {
             apiName,
             level,
             statusCode,
+            status,
             search, // General search term for message
             startDate,
             endDate,
@@ -58,6 +59,10 @@ const getLogs = async (req, res) => {
 
         if(statusCode){
             filter.statusCode = statusCode;
+        }
+
+        if(status){
+            filter.status = status;
         }
 
         if (level) {
