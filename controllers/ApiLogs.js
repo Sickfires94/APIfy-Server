@@ -219,6 +219,8 @@ const getLogCountByRange = async (req, res) => {
 
         }
 
+        matchFilter.project = projectId
+
         if(apiName.length > 0){
             matchFilter.apiName = {'$in' : apiName};
         }
