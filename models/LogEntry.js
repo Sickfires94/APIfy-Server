@@ -33,7 +33,7 @@ const LogSchema = new Schema({
     level: {type: String, enum: logLevels, default: logLevels.INFO},
     statusCode: {type: Number},
     responseMessage: {type: String},
-    errorsList: { type: [errorSchema], default: [] },
+    errorsList: { type: [Schema.Types.Mixed], default: [] },
     testingFlag: {type: Boolean, default: false},
 });
 

@@ -35,8 +35,9 @@ const runApi2 = async (req, res) => {
     // Initialize Logging
     const startTime = Date.now();
     const log = await new Log({apiName: name, project: project, testingFlag: TESTING_FLAG});
+    log.errorsList = []
+    const errorsList = log.errorsList;
     await log.save()
-    const errorsList = []
 
 
     let outputs = new Array(api.queries.length + 1).fill(null);
@@ -58,6 +59,7 @@ const runApi2 = async (req, res) => {
     }
 
     if(errorsList.length > 0){
+        log.responseMessage = "one or more request Parameters are missing"
         await log.save();
         return res.status(400).json({message: "one or more request Parameters are missing", "errors": errorsList});
     }
@@ -134,7 +136,6 @@ const runApi2 = async (req, res) => {
 
     if(responseIndex === -1) {
         //res.status(500).json({"error": "API did not function completely"}).end()
-
         message = "API did not function completely"
         httpCode = 500
     }
@@ -154,9 +155,13 @@ const runApi2 = async (req, res) => {
 
 
     if(errorsList.length > 0){
-        log.errorsList = errorsList;
+
+        console.log(`Errors: ${errorsList}`)
+
+        log.responseMessage = "API did not function completely";
         log.status = httpStatusCodeCategories.SERVER_ERROR;
         log.level = logLevels.ERROR
+
     }
     else {
         log.status = httpStatusCodeCategories.SUCCESS;
