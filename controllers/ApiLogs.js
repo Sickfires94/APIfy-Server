@@ -376,7 +376,7 @@ const getApiStats = async (req, res) => {
                     overallAverageResponseTimeMs: { $arrayElemAt: ["$overallStats.overallAverageResponseTimeMs", 0] }
                 }
             }
-        ];
+        ];      // Added new comment for testing
 
         // Execute the aggregation pipeline
         const result = await Log.aggregate(aggregationPipeline);
