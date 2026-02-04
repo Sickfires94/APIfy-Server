@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import { compare, hash } from "bcrypt";
+import Users from "../models/User.js";
 
 export const changePassword = async (req, res) => {
   try {
@@ -39,7 +40,7 @@ export const changePassword = async (req, res) => {
 
 export const viewProfile = async (req, res) => {
   try {
-    const user = await findById(req.body.id);
+    const user = await Users.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ success: true, message: "User not found" });
     }

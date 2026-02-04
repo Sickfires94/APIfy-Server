@@ -1,0 +1,147 @@
+{
+  "_id": {
+    "$oid": "67fe62a76faa49baec548ce1"
+  },
+  "name": "ParserUpdateTest",
+  "project": {
+    "$oid": "67cfdfd0fc4ae1095bc2caf2"
+  },
+  "user": {
+    "$oid": "6714e58bd2fc1fb31ad4f019"
+  },
+  "responseParams": [
+    {
+      "name": "book name",
+      "type": "string",
+      "index": 1,
+      "sourceName": "name",
+      "_id": {
+        "$oid": "67fe6483dd3a7683c5ac933e"
+      }
+    },
+    {
+      "name": "pages",
+      "type": "string",
+      "index": 1,
+      "sourceName": "pages",
+      "_id": {
+        "$oid": "67fe6483dd3a7683c5ac933f"
+      }
+    },
+    {
+      "name": "author name",
+      "type": "string",
+      "index": 1,
+      "sourceName": "author",
+      "_id": {
+        "$oid": "67fe6483dd3a7683c5ac9340"
+      }
+    }
+  ],
+  "deployed": false,
+  "middleware": [],
+  "requestParams": [
+    {
+      "name": "Book Name",
+      "type": "string",
+      "_id": {
+        "$oid": "67fe6483dd3a7683c5ac933c"
+      }
+    },
+    {
+      "name": "Author Name",
+      "type": "string",
+      "_id": {
+        "$oid": "67fe6483dd3a7683c5ac933d"
+      }
+    }
+  ],
+  "queries": [
+    {
+      "model": {
+        "$oid": "67cfdff6fc4ae1095bc2caf8"
+      },
+      "findOne": false,
+      "inputConnectors": [
+        {
+          "valueSources": [
+            {
+              "name": "name",
+              "index": 0,
+              "sourceName": "Book Name",
+              "_id": {
+                "$oid": "67fe6483dd3a7683c5ac9343"
+              }
+            },
+            null
+          ],
+          "column": "name",
+          "operator": "$eq",
+          "type": "find",
+          "_id": {
+            "$oid": "67fe6483dd3a7683c5ac9342"
+          }
+        },
+        {
+          "valueSources": [
+            null,
+            {
+              "name": "author",
+              "index": 2,
+              "sourceName": "name",
+              "_id": {
+                "$oid": "67fe6483dd3a7683c5ac9345"
+              }
+            }
+          ],
+          "column": "author",
+          "operator": "$eq",
+          "type": "update",
+          "_id": {
+            "$oid": "67fe6483dd3a7683c5ac9344"
+          }
+        }
+      ],
+      "outputColumns": [
+        "books"
+      ],
+      "_id": {
+        "$oid": "67fe6483dd3a7683c5ac9341"
+      }
+    },
+    {
+      "model": {
+        "$oid": "67cfe294274acb29e4fa685c"
+      },
+      "findOne": true,
+      "inputConnectors": [
+        {
+          "valueSources": [
+            {
+              "name": "name",
+              "index": 0,
+              "sourceName": "Author Name",
+              "_id": {
+                "$oid": "67fe6483dd3a7683c5ac9348"
+              }
+            },
+            null
+          ],
+          "column": "name",
+          "operator": "$eq",
+          "type": "find",
+          "_id": {
+            "$oid": "67fe6483dd3a7683c5ac9347"
+          }
+        }
+      ],
+      "outputColumns": [
+        "authors"
+      ],
+      "_id": {
+        "$oid": "67fe6483dd3a7683c5ac9346"
+      }
+    }
+  ],
+  "__v": 1
+}

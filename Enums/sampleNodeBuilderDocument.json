@@ -1,0 +1,158 @@
+[
+  {
+    "_id": "6800fbbe2c4027b862ce6b25",
+    "x": 93.49753694581278,
+    "y": 92.68472906403942,
+    "id": "1",
+    "name": "Request Parameters",
+    "type": "request",
+    "nodeType": "requestParams",
+    "edges": [],
+    "children": [
+      {
+        "id": "1c1",
+        "name": "authorName",
+        "nodeType": "requestInstance",
+        "edges": [
+          {
+            "id": "5c0",
+            "type": "find",
+            "operator": "equals"
+          }
+        ],
+        "edgesFrom": [],
+        "type": "string"
+      }
+    ],
+    "outputColums": [],
+    "edgesFrom": []
+  },
+  {
+    "_id": "6800fbbe2c4027b862ce6b26",
+    "x": 1222.239594964905,
+    "y": -59.22451647525992,
+    "id": "2",
+    "name": "Response",
+    "type": "response",
+    "nodeType": "responseNode",
+    "edges": [],
+    "children": [
+      {
+        "id": "2c1",
+        "name": "Book",
+        "nodeType": "responseInstance",
+        "edges": [],
+        "edgesFrom": [
+          {
+            "id": "4coutput",
+            "type": "input",
+            "operator": null
+          }
+        ],
+        "type": "string"
+      }
+    ],
+    "outputColums": [],
+    "edgesFrom": []
+  },
+  {
+    "x": 463.36761755113974,
+    "y": -408.73757215883995,
+    "id": "3",
+    "name": "Generate Token",
+    "type": "function",
+    "nodeType": "functionNode",
+    "children": []
+  },
+  {
+    "x": 844.1074538592339,
+    "y": -230.6384429851625,
+    "id": "4",
+    "name": "books",
+    "type": "table",
+    "nodeType": "tableNode",
+    "configuration": {
+      "queryType": "findAll"
+    },
+    "children": [
+      {
+        "id": "4c0",
+        "name": "name",
+        "nodeType": "columNode"
+      },
+      {
+        "id": "4c1",
+        "name": "pages",
+        "nodeType": "columNode"
+      },
+      {
+        "id": "4c2",
+        "name": "author",
+        "nodeType": "columNode",
+        "edgesFrom": [
+          {
+            "id": "5c0",
+            "type": "find",
+            "operator": "equals"
+          }
+        ]
+      },
+      {
+        "id": "4coutput",
+        "name": "output",
+        "nodeType": "tableOutput",
+        "outputColums": [
+          "name",
+          "author",
+          "output",
+          "pages"
+        ],
+        "edges": [
+          {
+            "id": "2c1",
+            "type": "input",
+            "operator": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "x": 489.5479420171928,
+    "y": 182.16909859495541,
+    "id": "5",
+    "name": "authors",
+    "type": "table",
+    "nodeType": "tableNode",
+    "configuration": {
+      "queryType": "findOne"
+    },
+    "children": [
+      {
+        "id": "5c0",
+        "name": "name",
+        "nodeType": "columNode",
+        "edgesFrom": [
+          {
+            "id": "1c1",
+            "type": "find",
+            "operator": "equals"
+          }
+        ],
+        "edges": [
+          {
+            "id": "4c2",
+            "type": "find",
+            "operator": "equals"
+          }
+        ]
+      },
+      {
+        "id": "5coutput",
+        "name": "output",
+        "nodeType": "tableOutput",
+        "outputColums": []
+      }
+    ]
+  }
+]
